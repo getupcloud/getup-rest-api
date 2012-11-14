@@ -1,0 +1,4 @@
+bottle==0.11.3
+distribute==0.6.24
+hammock==0.2.0
+requests==0.14.2
