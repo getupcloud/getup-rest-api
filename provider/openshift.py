@@ -49,7 +49,7 @@ class OpenShift(Provider):
 		except:
 			self.create_domain(domain)
 
-		params = dict(name=app_name)
+		params = {'name':app_name}
 		if framework:
 			params['cartridge'] = str(framework)
 		res = self._api.domains(domain).applications.POST(data=params)

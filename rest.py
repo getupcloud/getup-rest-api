@@ -5,7 +5,6 @@ import os, sys
 import bottle
 from bottle import HTTPError
 from http import *
-import app
 
 # import api impl
 import api

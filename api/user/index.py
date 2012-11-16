@@ -13,4 +13,4 @@ def get(user_id=None):
 def post(user_id):
 	base_url = '%s://%s/user' % request.urlparts[0:2]
 	url = '%s/%s' % (base_url, user_id)
-	return ResponseCreated(User(user_id, location=dict(method='GET', url=url)))
+	return ResponseCreated(User(user_id, location={'method':'GET', 'url':url}))
