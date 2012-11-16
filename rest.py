@@ -12,67 +12,46 @@ import api
 
 ALL_METHODS = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']
 
-def find_method(handler):
+def _method(handler, *vargs, **kvargs):
 	name = bottle.request.method
 	if name.lower() == 'head':
 		name = 'get'
 	method = getattr(handler, name.lower(), None) or getattr(handler, name.upper(), None)
 	if method is None:
 		raise HTTPError(HTTP_METHOD_NOT_ALLOWED)
-	return method
-
+	res = method(*vargs, **kvargs)
+	bottle.response.status = '%i %s' % (res.status_code, res.status_message)
+	return res
 #
 # Routes
 #
 
-@bottle.route('/<:re:(app|a)>/<domain:re:[_a-zA-Z][_0-9a-zA-Z]+>', method=ALL_METHODS)
-def handle_domain(domain):
-	'''Handles domain query, creation, modification and deletion
+@bottle.route('/')
+def handle_root():
+	'''Root handler
 	'''
-	method = find_method(api.domain)
-	return method(domain)
+	return _method(api)
 
-@bottle.route('/<:re:(app|a)>/<domain:re:[_a-zA-Z][_0-9a-zA-Z]+>/<name:re:[_a-zA-Z][_0-9a-zA-Z]+>', method=ALL_METHODS)
-def handle_app(domain, name):
-	'''Handles app query, creation, modification and deletion
+@bottle.get('/user')
+@bottle.route('/user/<user_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
+def handle_user(user_name=None):
+	'''User CRUD
 	'''
-	method = find_method(api.app)
-	return method(domain, name)
+	return _method(api.user, user_name)
 
-@bottle.route('/<:re:(user|usr|u)>', method=ALL_METHODS)
-@bottle.route('/<:re:(user|usr|u)>/<name:re:[_a-zA-Z][_0-9a-zA-Z]+>', method=ALL_METHODS)
-def handle_user(name=None):
-	'''Handles user query, creation, modification and deletion
+@bottle.get('/app')
+@bottle.route('/app/<domain_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
+@bottle.route('/app/<domain_name:re:[_a-zA-Z][_0-9a-zA-Z]*>/<app_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
+def handle_app(domain_name=None, app_name=None):
+	'''Domain and App CRUD
 	'''
-	method = find_method(api.user)
-	return method(name)
+	user_name = 'someone' # TODO: retrieved by auth
+	if app_name is None:
+		return _method(api.domain, user_name, domain_name)
+	else:
+		return _method(api.app, user_name, domain_name, app_name)
 
 ##############
 
 if __name__ == '__main__':
 	bottle.run(host='localhost', port=8080, debug=True, reloader=True)
-
-
-'''
-iaas = OpenShift('spinolacastro@gmail.com', 'kgb8y2k;.', default_domain='spinolacastro')
-
-if 3 <= len(sys.argv) <= 4:
-	print 'Creating Application:'
-	try:
-		name, framework, domain =  sys.argv[1:]
-	except:
-		name, framework =  sys.argv[1:]
-		domain = None
-	app = iaas.new_app(name, framework, domain)
-	repo = Repo(app)
-	print 'New application repo: %s' % os.path.join(os.getcwd(), repo.path)
-elif len(sys.argv) == 1:
-	print 'Listing Applications:'
-	for app in iaas.apps():
-		a = app._asdict()
-		print
-		print '- %(name)s (%(framework)s)' % a
-		print '  url: %(url)s' % a
-		print '  git: %(git_url)s' % a
-	print
-'''

@@ -6,5 +6,4 @@ from response import Response
 def get():
 	return Response()
 
-def post():
-	return Response()
+head = get

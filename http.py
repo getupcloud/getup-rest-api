@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from httplib import OK
+from httplib import CREATED
 from httplib import METHOD_NOT_ALLOWED
+from httplib import BAD_REQUEST
 
 HTTP_200 = HTTP_OK = OK
+HTTP_201 = HTTP_CREATED = CREATED
+HTTP_400 = HTTP_BAD_REQUEST = BAD_REQUEST
 HTTP_405 = HTTP_METHOD_NOT_ALLOWED = METHOD_NOT_ALLOWED
 
 __all__ = [
 	'HTTP_200', 'HTTP_OK',
+	'HTTP_201', 'HTTP_CREATED',
+	'HTTP_400', 'HTTP_BAD_REQUEST',
 	'HTTP_405', 'HTTP_METHOD_NOT_ALLOWED',
 ]

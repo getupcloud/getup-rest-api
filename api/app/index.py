@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from bottle import request
-from response import Response
-from app import App
+from response import Response, ResponseCreated, ResponseBadRequest
+from provider import OpenShift
+from api import App
 
-def get(domain, name):
-	username = 'john'
-	app = App(name=name, domain=domain, url='http://%s-%s.getupcloud.com' % (name, domain), framework='php-5.2', git_url='ssh://%s@git.getupcloud.com/example' % username)
-	return Response(app)
+def get(user_name, domain_name, app_name):
+	provider = OpenShift('spinolacastro@gmail.com', 'kgb8y2k;.', default_domain='spinolacastro')
+	app = provider.get_app(domain_name, app_name)
+	return Response(App(name=app['name'], url=app['app_url'], framework=app['framework'], git_url=app['git_url']))
 
-def post(**kvargs):
-	return Response()
+def post(user_name, domain_name, app_name):
+	provider = OpenShift('spinolacastro@gmail.com', 'kgb8y2k;.', default_domain='spinolacastro')
+	app = provider.create_app(domain_name, app_name, request.params.framework)
+	return ResponseCreated(App(name=app['name'], url=app['app_url'], framework=app['framework'], git_url=app['git_url']))
+
+def delete(user_name, domain_name, app_name):
+	provider = OpenShift('spinolacastro@gmail.com', 'kgb8y2k;.', default_domain='spinolacastro')
+	app = provider.delete_app(domain_name, app_name)
+	return Response(App(name=app['name'], url=app['app_url'], framework=app['framework'], git_url=app['git_url']))

@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from bottle import request
-from response import Response
+from response import Response, ResponseCreated
+#from provider import OpenShift
+from api import User
 
-def get(name=None):
-	if name is not None:
-		return Response({'username':name})
-	else:
-		return Response([
-				{'username':'john'},
-				{'username':'jerry'},
-				{'username':'jenny'},
-			])
+def get(user_id=None):
+	if user_id is None:
+		return Response([ User(name) for name in ('john', 'ringo', 'paul', 'george') ])
+	return Response(User(user_id))
 
-def post(**kvargs):
-	return Response()
+def post(user_id):
+	base_url = '%s://%s/user' % request.urlparts[0:2]
+	url = '%s/%s' % (base_url, user_id)
+	return ResponseCreated(User(user_id, location=dict(method='GET', url=url)))
