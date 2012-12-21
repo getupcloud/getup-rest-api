@@ -1,0 +1,107 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          getup-rest-api
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: GetUP RESTfull API
+# Description:       GetUP RESTfull API
+### END INIT INFO
+
+APP_ROOT="/home/getup/getup-rest-api"
+RUN_DIR="$APP_ROOT/run"
+PID_FILE="$RUN_DIR/app.pid"
+APP_SOCKET="$RUN_DIR/app.socket"
+LOG_DIR="$APP_ROOT/log"
+NAME="getup-rest-api"
+DESC="GetUP RESTfull API"
+DAEMON_OPTS="-c gunicorn.conf"
+
+check_pid()
+{
+  STATUS=0
+  PID=0
+  if [ -f $PID_FILE ]; then
+    PID=`cat $PID_FILE`
+    kill -0 "$PID" && STATUS=1
+  fi
+}
+
+start() {
+  cd $APP_ROOT
+  check_pid
+  if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
+    # Program is running, exit with error code 1.
+    echo "Error! $DESC $NAME is currently running!"
+    exit 1
+  else
+    mkdir -p $RUN_DIR $LOG_DIR
+    ./start "$DAEMON_OPTS"
+    echo "$DESC started"
+  fi
+}
+
+stop() {
+  cd $APP_ROOT
+  check_pid
+  if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
+    ## Program is running, stop it.
+    kill -INT `cat $PID`
+    rm -f "$PID_FILE" >> /dev/null
+    echo "$DESC stopped"
+  else
+    ## Program is not running, exit with error.
+    echo "Error! $DESC not started!"
+    exit 1
+  fi
+}
+
+reload() {
+  cd $APP_ROOT
+  check_pid
+  if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
+    echo -n "Reloading $DESC: "
+    kill -HUP $PID
+    echo "$NAME."
+  else
+    echo "Error, $NAME not running!"
+    exit 1
+  fi
+}
+
+status() {
+  cd $APP_ROOT
+  check_pid
+  if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
+    echo "$DESC with PID $PID is running."
+  else
+    echo "$DESC is not running."
+    exit 1
+  fi
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        stop
+        start
+        ;;
+  reload|force-reload)
+        reload
+        ;;
+  status)
+        status
+        ;;
+  *)
+        echo "Usage: $NAME {start|stop|restart|reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
