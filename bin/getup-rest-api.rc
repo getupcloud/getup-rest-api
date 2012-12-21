@@ -47,8 +47,7 @@ stop() {
   check_pid
   if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
     ## Program is running, stop it.
-    kill -INT `cat $PID`
-    rm -f "$PID_FILE" >> /dev/null
+    kill -INT "$PID"
     echo "$DESC stopped"
   else
     ## Program is not running, exit with error.
