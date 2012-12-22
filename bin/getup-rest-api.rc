@@ -9,6 +9,8 @@
 # Description:       GetUP RESTfull API
 ### END INIT INFO
 
+export RUN_USER=getup
+export RUN_GROUP=getup
 export APP_ROOT="/home/getup/getup-rest-api"
 export RUN_DIR="$APP_ROOT/run"
 export PID_FILE="$RUN_DIR/app.pid"
@@ -36,7 +38,7 @@ start() {
     echo "Error! $DESC $NAME is currently running!"
     exit 1
   else
-    mkdir -p $RUN_DIR $LOG_DIR
+    install -d $RUN_DIR $LOG_DIR --owner=$RUN_USER --group=$RUN_GROUP --mode=770
     ./start "$DAEMON_OPTS" || { echo failed; exit 1; }
     echo "$DESC started"
   fi
