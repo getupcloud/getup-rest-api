@@ -37,7 +37,7 @@ start() {
     exit 1
   else
     mkdir -p $RUN_DIR $LOG_DIR
-    ./start "$DAEMON_OPTS"
+    ./start "$DAEMON_OPTS" || { echo failed; exit 1; }
     echo "$DESC started"
   fi
 }
