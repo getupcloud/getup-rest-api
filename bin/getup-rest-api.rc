@@ -9,13 +9,13 @@
 # Description:       GetUP RESTfull API
 ### END INIT INFO
 
-APP_ROOT="/home/getup/getup-rest-api"
-RUN_DIR="$APP_ROOT/run"
-PID_FILE="$RUN_DIR/app.pid"
-APP_SOCKET="$RUN_DIR/app.socket"
-LOG_DIR="$APP_ROOT/log"
-NAME="getup-rest-api"
-DESC="GetUP RESTfull API"
+export APP_ROOT="/home/getup/getup-rest-api"
+export RUN_DIR="$APP_ROOT/run"
+export PID_FILE="$RUN_DIR/app.pid"
+export APP_SOCKET="$RUN_DIR/app.socket"
+export LOG_DIR="$APP_ROOT/log"
+export NAME="getup-rest-api"
+export DESC="GetUP RESTfull API"
 DAEMON_OPTS="-c gunicorn.conf"
 
 check_pid()
