@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from bottle import request
-from response import Response, ResponseCreated
+from getup.response import Response, ResponseCreated
 #from provider import OpenShift
-from api import User
+from getup.api import User
 
 def get(user_id=None):
 	if user_id is None:

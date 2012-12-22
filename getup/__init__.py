@@ -1,1 +1,2 @@
-from bottle import app as application
+from rest import *
+application = bottle.default_app()

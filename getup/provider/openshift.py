@@ -1,5 +1,5 @@
-from provider import Provider
-from api import App
+from getup.provider import Provider
+from getup.api import App
 
 class OpenShift(Provider):
 	def __init__(self, username, password, default_domain=None):

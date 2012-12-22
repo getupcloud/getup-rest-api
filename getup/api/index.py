@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from bottle import request
-from response import Response
+from getup.response import Response
 
 def get():
 	return Response()

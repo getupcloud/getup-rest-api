@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from bottle import request
-from response import Response
-from provider import OpenShift
-from api import Domain, App
+from getup.response import Response
+from getup.provider import OpenShift
+from getup.api import Domain, App
 
 def get(user_name, domain_name=None):
 	provider = OpenShift('spinolacastro@gmail.com', 'kgb8y2k;.', default_domain='spinolacastro')
