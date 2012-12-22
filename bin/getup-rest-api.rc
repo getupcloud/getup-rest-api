@@ -15,8 +15,8 @@ export RUN_GROUP=getup
 export APP_ROOT="/home/getup/getup-rest-api"
 export RUN_DIR="/var/run"
 export PID_FILE="$RUN_DIR/$NAME.pid"
-export APP_SOCKET="unix:$RUN_DIR/$NAME.sock"
-export LOG_DIR="'/var/log/getup-rest-api"
+export APP_SOCKET="unix:$APP_DIR/$NAME.sock"
+export LOG_DIR="/var/log/getup-rest-api"
 export DESC="GetUP RESTfull API"
 DAEMON_OPTS="-c gunicorn.conf"
 
@@ -38,7 +38,7 @@ start() {
     echo "Error! $DESC $NAME is currently running!"
     exit 1
   else
-    install -d $RUN_DIR $LOG_DIR --owner=$RUN_USER --group=$RUN_GROUP --mode=770
+    install -d $LOG_DIR --owner=$RUN_USER --group=$RUN_GROUP --mode=770
     ./start $DAEMON_OPTS || { echo failed; exit 1; }
     echo "$DESC started"
   fi
