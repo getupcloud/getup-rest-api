@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from bottle import request
-from getup import response
+from getup.response import ResponseOK
 
 def get():
-	return response.ResponseOK()
+	return ResponseOK()
 
 head = get

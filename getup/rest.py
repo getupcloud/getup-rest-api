@@ -3,13 +3,21 @@
 
 import os, sys
 import bottle
-from bottle import HTTPError
-from http import *
+import config, database, http, aaa, api
 
-# import api impl
-import api
+app = bottle.default_app()
 
 ALL_METHODS = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']
+
+@bottle.hook('before_request')
+def startup():
+	#print '+'*30
+	app.config.user = None
+
+@bottle.hook('after_request')
+def teardown():
+	app.config.user = None
+	#print '-'*30
 
 def _method(handler, *vargs, **kvargs):
 	name = bottle.request.method
@@ -17,10 +25,9 @@ def _method(handler, *vargs, **kvargs):
 		name = 'get'
 	method = getattr(handler, name.lower(), None) or getattr(handler, name.upper(), None)
 	if method is None:
-		raise HTTPError(HTTP_METHOD_NOT_ALLOWED)
-	res = method(*vargs, **kvargs)
-	bottle.response.status = '%i %s' % (res.status_code, res.status_message)
-	return res
+		raise bottle.HTTPError(HTTP_METHOD_NOT_ALLOWED)
+	return  method(*vargs, **kvargs)
+
 #
 # Routes
 #
@@ -31,26 +38,55 @@ def handle_root():
 	'''
 	return _method(api)
 
-@bottle.get('/user')
-@bottle.route('/user/<user_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
-def handle_user(user_name=None):
-	'''User CRUD
+@bottle.get('/admin')
+@aaa.admin_user
+def handle_admin():
+	'''Admin area
 	'''
-	return _method(api.user, user_name)
+	return _method(api.admin)
 
+@bottle.get('/admin/status')
+@aaa.admin_user
+def handle_admin_status():
+	'''Status
+	'''
+	return _method(api.admin.status)
+
+@bottle.get('/admin/user')
+@bottle.route('/admin/user/username', method=ALL_METHODS)
+@aaa.admin_user
+def handle_admin_user(username=None):
+	'''User CRUD (admin only)
+	'''
+	return _method(api.admin.user, username)
+
+@bottle.get('/user')
+@bottle.get('/user/<username>')
+@aaa.valid_user
+def handle_user(username=None):
+	'''User profile
+	'''
+	return _method(api.user, username=username)
+
+@bottle.get('/user/<username>/key')
+@bottle.route('/user/<username>/key/<keyname>', method=['GET', 'POST', 'DELETE'])
+@bottle.route('/user/<username>/key/<keyname>/id/<keyident>', method=['GET', 'DELETE'])
+@aaa.valid_user
+def handle_user_key(username, keyname=None, keyident=None):
+	'''User public keys
+	'''
+	return _method(api.user.key, username=username, keyname=keyname, keyident=keyident)
+
+"""
 @bottle.get('/app')
 @bottle.route('/app/<domain_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
 @bottle.route('/app/<domain_name:re:[_a-zA-Z][_0-9a-zA-Z]*>/<app_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
 def handle_app(domain_name=None, app_name=None):
 	'''Domain and App CRUD
 	'''
-	user_name = 'someone' # TODO: retrieved by auth
+	username = 'someone' # TODO: retrieved by auth
 	if app_name is None:
-		return _method(api.domain, user_name, domain_name)
+		return _method(api.domain, username, domain_name)
 	else:
-		return _method(api.app, user_name, domain_name, app_name)
-
-##############
-
-if __name__ == '__main__':
-	bottle.run(host='localhost', port=8080, debug=True, reloader=True)
+		return _method(api.app, username, domain_name, app_name)
+"""
