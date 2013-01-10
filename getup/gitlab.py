@@ -1,5 +1,6 @@
 import bottle
 from hammock import Hammock
+from functools import wraps
 
 app = bottle.app()
 
@@ -14,7 +15,16 @@ def user(userid=None, token=None):
 		users = Hammock(app.config.webgit['base_url'], headers=hdr).users
 	return users.GET().json
 
-class Gitlab(Hammock):
-	def __init__(self, authentication_token):
-		hdr = { app.config.webgit['token_header']: authentication_token or app.config.user['authentication_token'] }
-		Hammock.__init__(self, app.config.webgit['base_url'], headers=hdr)
+class Gitlab:
+	def __init__(self):
+		hdr = { app.config.webgit['token_header']: app.config.user['authentication_token'] }
+		self.api = Hammock(app.config.webgit['base_url'].rstrip('/'), headers=hdr)
+
+	def __getattr__(self, name):
+		return getattr(self.api, name)
+
+def api(wrapped):
+	@wraps(wrapped)
+	def wrapper(user, *vargs, **kvargs):
+		return wrapped(user=user, api=Gitlab(), *vargs, **kvargs)
+	return wrapper

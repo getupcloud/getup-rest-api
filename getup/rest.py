@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os, sys, time, logging
 import bottle
-import config, database, http, aaa, api
+import config, database, http
+import hooks, aaa, api, response
 
 app = bottle.default_app()
 
@@ -11,13 +12,14 @@ ALL_METHODS = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']
 
 @bottle.hook('before_request')
 def startup():
-	#print '+'*30
 	app.config.user = None
+	bottle.response.headers['Cache-Control'] = 'no-cache'
+	print time.time(),'-', bottle.request.method, bottle.request.path
 
 @bottle.hook('after_request')
 def teardown():
 	app.config.user = None
-	#print '-'*30
+	print time.time(),'-', bottle.response.status_code
 
 def _method(handler, *vargs, **kvargs):
 	name = bottle.request.method
@@ -25,8 +27,8 @@ def _method(handler, *vargs, **kvargs):
 		name = 'get'
 	method = getattr(handler, name.lower(), None) or getattr(handler, name.upper(), None)
 	if method is None:
-		raise bottle.HTTPError(HTTP_METHOD_NOT_ALLOWED)
-	return  method(*vargs, **kvargs)
+		raise response.ResponseMethodNotAllowed()
+	return method(*vargs, **kvargs)
 
 #
 # Routes
@@ -38,55 +40,125 @@ def handle_root():
 	'''
 	return _method(api)
 
-@bottle.get('/admin')
+@bottle.get('/status')
 @aaa.admin_user
-def handle_admin():
-	'''Admin area
+def handle_status():
+	'''System status and config
 	'''
-	return _method(api.admin)
+	return _method(api.status)
 
-@bottle.get('/admin/status')
-@aaa.admin_user
-def handle_admin_status():
-	'''Status
-	'''
-	return _method(api.admin.status)
-
-@bottle.get('/admin/user')
-@bottle.route('/admin/user/username', method=ALL_METHODS)
-@aaa.admin_user
-def handle_admin_user(username=None):
-	'''User CRUD (admin only)
-	'''
-	return _method(api.admin.user, username)
-
-@bottle.get('/user')
-@bottle.get('/user/<username>')
+#
+# Domains
+#
+@bottle.route('/broker/rest/domains',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/', method=ALL_METHODS)
 @aaa.valid_user
-def handle_user(username=None):
+@hooks.account(POST='create_domain')
+def handle_domains(**kvargs):
+	return _method(api.broker, path=bottle.request.path)
+
+@bottle.route('/broker/rest/domains/<domain>',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/', method=ALL_METHODS)
+@aaa.valid_user
+@hooks.account(DELETE='delete_domain')
+def handle_domain(**kvargs):
+	return _method(api.broker, path=bottle.request.path)
+
+#
+# Aplications
+#
+@bottle.route('/broker/rest/domains/<domain>/applications',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/', method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/', method=ALL_METHODS)
+@aaa.valid_user
+@hooks.account(POST='create_app', DELETE='delete_app')
+def handle_app(**kvargs):
+	return _method(api.broker, path=bottle.request.path)
+
+def account_events(res):
+	return bottle.request.params.event in [ 'start', 'stop', 'force-stop', 'scale-up', 'scale-down' ]
+
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/events',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/events/', method=ALL_METHODS)
+@aaa.valid_user
+@hooks.account(POST=('events_app', account_events))
+def handle_events_app(**kvargs):
+	return _method(api.broker, path=bottle.request.path)
+
+#
+# Cartridges
+#
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/', method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/', method=ALL_METHODS)
+@aaa.valid_user
+@hooks.account(POST='create_cart', DELETE='delete_cart')
+def handle_cart(**kvargs):
+	return _method(api.broker, path=bottle.request.path)
+
+def account_cartridges(res):
+	return bottle.request.params.event in [ 'start', 'stop' ]
+
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events',  method=ALL_METHODS)
+@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events/', method=ALL_METHODS)
+@aaa.valid_user
+@hooks.account(POST=('events_cart', account_cartridges))
+def handle_events_cart(**kvargs):
+	return _method(api.broker, path=bottle.request.path)
+
+#
+# Broker passthru
+#
+@bottle.route('/broker/rest/<path:path>')
+@aaa.valid_user
+def handle_broker(path=None):
+	return _method(api.broker, path=path)
+
+#
+# Single user
+#
+@bottle.route('/api/v2/user',             method=ALL_METHODS)
+@bottle.route('/api/v2/user/',            method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys/',       method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys',        method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys/<key>',  method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys/<key>/', method=ALL_METHODS)
+@aaa.valid_user
+def handle_user(key=None):
 	'''User profile
 	'''
-	return _method(api.user, username=username)
+	return _method(api.user, path=bottle.request.path)
 
-@bottle.get('/user/<username>/key')
-@bottle.route('/user/<username>/key/<keyname>', method=['GET', 'POST', 'DELETE'])
-@bottle.route('/user/<username>/key/<keyname>/id/<keyident>', method=['GET', 'DELETE'])
-@aaa.valid_user
-def handle_user_key(username, keyname=None, keyident=None):
-	'''User public keys
-	'''
-	return _method(api.user.key, username=username, keyname=keyname, keyident=keyident)
+#
+# Users admin
+#
+def account_users_filter(res):
+	content = dict(filter(lambda (k,n): k != 'password', bottle.request.json.iteritems()))
+	return content
 
-"""
-@bottle.get('/app')
-@bottle.route('/app/<domain_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
-@bottle.route('/app/<domain_name:re:[_a-zA-Z][_0-9a-zA-Z]*>/<app_name:re:[_a-zA-Z][_0-9a-zA-Z]*>', method=ALL_METHODS)
-def handle_app(domain_name=None, app_name=None):
-	'''Domain and App CRUD
+@bottle.route('/api/v2/users',  method=ALL_METHODS)
+@bottle.route('/api/v2/users/', method=ALL_METHODS)
+@aaa.admin_user
+@hooks.account(POST=('create_user', None, account_users_filter), DELETE='delete_user')
+def handle_user():
+	'''User profile
 	'''
-	username = 'someone' # TODO: retrieved by auth
-	if app_name is None:
-		return _method(api.domain, username, domain_name)
-	else:
-		return _method(api.app, username, domain_name, app_name)
-"""
+	return _method(api.users, path=bottle.request.path)
+
+@bottle.route('/api/v2/users/<name>',  method=ALL_METHODS)
+@bottle.route('/api/v2/users/<name>/', method=ALL_METHODS)
+@aaa.admin_user
+def handle_user(name):
+	'''User profile
+	'''
+	return _method(api.users, name=name, path='/api/v2/users', userid=name)
+
+#
+# Health check
+#
+@bottle.get('/health_check')
+def handle_health_check():
+	bottle.response.content_type = 'text/plain'
+	return 'OK'

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, codec, model, database, response, gitlab
+from getup import aaa, codec, model, proto
+from getup import database, response, gitlab
 
 @aaa.authoritative_user
 def get(user, keyname=None, keyident=None):
@@ -17,7 +18,7 @@ def get(user, keyname=None, keyident=None):
 		return response.ResponseOK(model.User(user, keys=keys))
 
 @aaa.authoritative_user
-@codec.content_type('application/json')
+@proto.content_type('application/json')
 @codec.decode(codec.json)
 def post(user, keyname, content, *vargs, **kvargs):
 	key = model.Key(title=keyname, key=content['key'])

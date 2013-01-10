@@ -1,8 +1,21 @@
+# -*- coding: utf-8 -*-
+
 import bottle
 from abc import ABCMeta, abstractmethod
 from hammock import Hammock
 
 class Provider:
+	def __init__(self, name, base_url, auth, accept='application/json'):
+		self._name = name
+		self._base_url = base_url
+		self._auth = auth
+		headers = { 'Accept': accept }
+		self.api = Hammock(base_url, auth=auth, headers=headers)
+
+	def __getattr__(self, name):
+		return getattr(self.api, name)
+
+class Provider__:
 	__metaclass__ = ABCMeta
 
 	def __init__(self, name, base_url, auth, accept='application/json'):
@@ -10,10 +23,10 @@ class Provider:
 		self._base_url = base_url
 		self._auth = auth
 		headers = { 'accept': accept }
-		self._api = Hammock(base_url, auth=auth, headers=headers)
+		self.api = Hammock(base_url, auth=auth, headers=headers)
 
 	def __getattr__(self, name):
-		return getattr(self._api, name)
+		return getattr(self.api, name)
 
 	def assert_response(self, response, statuses=[200]):
 		'''Validates HTTP response from provider.
@@ -52,6 +65,11 @@ class Provider:
 		'''Create a new domain.
 		'''
 
+	@abstractmethod
+	def delete_domain(self, name, **kvargs):
+		'''Delete a domain.
+		'''
+
 	#
 	# Apps
 	#
@@ -73,3 +91,4 @@ class Provider:
 	def delete_app(self, domain_name, app_name):
 		'''Delete an app.
 		'''
+

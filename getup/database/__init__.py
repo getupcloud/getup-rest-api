@@ -16,7 +16,7 @@ user_cols = [
 		'authentication_token',
 	]
 
-Users = Keys = None
+Account = Users = Keys = None
 
 def start(app):
 	if 'engine' not in app.config.database:
@@ -29,6 +29,8 @@ def start(app):
 		Users = table(bottle.app(), 'users')
 		global Keys
 		Keys = table(bottle.app(), 'keys')
+		global Account
+		Account = table(bottle.app(), 'account')
 
 def table(app, name):
 	engine = app.config.database['engine']
@@ -51,6 +53,17 @@ def user(**where):
 def keys(user, **where):
 	query = _make_query(Keys, user_id=user['id'], **where)
 	return query.execute()
+
+def account(user, event_name, event_value):
+	'''CREATE TABLE `account` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`user_id` int(11) NOT NULL,
+	`time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`key` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+	`value` varchar(1024) COLLATE utf8_unicode_ci DEFAULT NULL,
+	PRIMARY KEY (`id`))
+	'''
+	Account.insert().values(user_id=user['id'], key=event_name, value=event_value).execute()
 
 if __name__ == '__main__':
 	import getup.config

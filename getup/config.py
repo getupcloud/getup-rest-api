@@ -8,6 +8,7 @@ app_root = Path(os.environ.get('APP_ROOT', Path(__file__).dirname().dirname()))
 valid_config = [
 	'database',
 	'webgit',
+	'provider',
 ]
 
 def loadconfig(app, filename=None):

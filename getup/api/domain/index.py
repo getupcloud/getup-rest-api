@@ -1,17 +1,38 @@
 # -*- coding: utf-8 -*-
 
-from bottle import request
-from getup.response import Response
-from getup.provider import OpenShift
-from getup.api import Domain, App
+from getup import aaa, model, response, provider
 
-def get(user_name, domain_name=None):
-	provider = OpenShift('spinolacastro@gmail.com', 'kgb8y2k;.', default_domain='spinolacastro')
-	if domain_name is None:
-		domains = [ Domain(domain['id']) for domain in provider.list_domains() ]
-		return Response(domains)
+@aaa.authoritative_user
+@provider.provider
+def get(user, prov, domain=None):
+	if domain is None:
+		res, domains = prov.list_domains()
+		return response.ResponseOK([ model.Domain(domain) for domain in domains ])
+	res, dom = prov.get_domain(domain)
+	if res.status_code != 200:
+		return response.ResponseNotFound([ model.Domain(id=domain) ])
+	res, apps = prov.list_apps(domain)
+	apps = [ model.App(app, health_check=prov.health_check(app)) for app in apps ]
+	dom = model.Domain(dom)
+	return response.ResponseOK({'apps':apps, 'domain':dom})
 
-	apps = []
-	for app in provider.list_apps(domain_name):
-		apps.append(App(name=app['name'], url=app['app_url'], framework=app['framework'], git_url=app['git_url']))
-	return Response(Domain(domain_name, apps=apps))
+@aaa.authoritative_user
+@provider.provider
+def post(user, prov, domain):
+	assert domain, 'missing domain name'
+	res, dom = prov.create_domain(domain)
+	if res.status_code == 201:
+		return response.ResponseCreated([ model.Domain(dom) ])
+	elif res.status_code == 422:
+		return response.ResponseConflict([ model.Domain(id=domain) ])
+	return response.ResponseBadRequest(res)
+
+@aaa.authoritative_user
+@provider.provider
+def delete(user, prov, domain):
+	res, dom = prov.delete_domain(domain)
+	if res.status_code == 404:
+		return response.ResponseNotFound([ model.Domain(id=domain) ])
+	elif res.status_code != 204:
+		return response.ResponseConflict(res)
+	return response.ResponseOK([ model.Domain(id=domain) ])
