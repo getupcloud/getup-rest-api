@@ -1,0 +1,50 @@
+############################################
+# Summary of RedHat's Openshift RESTfull API
+#
+# METHOD PATH PARAMETER_NAME=[VALUE|...] <NAME=[VALUE|...]>
+#
+# - <...> are optinal parameter.
+# - VALUE* is the default.
+############################################
+
+# Domains
+
+GET    /broker/rest/domains
+POST   /broker/rest/domains id=[Domain_ID]
+GET    /broker/rest/domains/[Domain_ID]
+PUT    /broker/rest/domains/[Domain_ID] id=[New_Domain_ID]
+DELETE /broker/rest/domains/[Domain_ID] force=[true|false*]
+
+# Applications
+
+GET    /broker/rest/domains/[Domain_ID]/applications
+POST   /broker/rest/domains/[Domain_ID]/applications name=[App_Name] cartridge=[Cartridge_Name] <template=[Template_UUID] scale=[true|false*] gear_profile=small>
+GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]
+POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events event=[start|stop|force-stop|restart|show-port|expose-port|conceal-port|scale-up|scale-down]
+POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events event=[add-alias|remove-alias] alias=[Alias_Name]
+DELETE /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events
+GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events/descriptor
+GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/gears
+
+# Cartridges
+
+GET    /broker/rest/cartridges
+GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges
+POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges cartridge=[Cartridge_Name]
+GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name]
+POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name]/events event=[start|stop|restart|reload]
+DELETE /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name]
+
+# Users
+
+GET    /broker/rest/user
+GET    /broker/rest/user/keys
+POST   /broker/rest/user/keys name=[Key_Name] type=[Key_Type] content=[URLEncoded_Key_Content]
+GET    /broker/rest/user/keys/[Key_Name]
+PUT    /broker/rest/user/keys/[Key_Name] type=[Key_Type] content=[URLEncoded_Key_Content]
+DELETE /broker/rest/user/keys/[Key_Name]
+
+# Templates
+
+GET    /broker/rest/application_template
+GET    /broker/rest/application_template/[Template_UUID|Template_Tag]

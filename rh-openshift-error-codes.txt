@@ -1,0 +1,153 @@
+SHOW_APPLICATION:
+   404 Not Found:
+      101: "Application '#{id}' not found"
+      127: "Domain '#{domain_id}' not found"
+
+
+UPDATE_CARTRIDGE:
+   404 Not Found:
+      163: "Cartridge '#{cartridge_name}' for application '#{app_id}' not found"
+      101: "Application '#{app_id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+EMBED_CARTRIDGE:
+   422 Unprocessable Entity:
+      104: '#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}'
+
+   404 Not Found:
+      101: "Application '#{id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+   400 Bad Request:
+      109: "Invalid cartridge. Valid values are (#{carts.join(', ')})"
+
+   500 Internal Server Error:
+      '???': 'Cartridge #{name} not embedded within application #{id}'
+
+
+AUTHENTICATE:
+   404 Not Found:
+      99: "User '#{@login}' not found"
+
+
+GET_GEAR_GROUP:
+   404 Not Found:
+      163: "Gear group '#{gear_group_id}' for application '#{app_id}' not found"
+      101: "Application '#{app_id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+ADD_KEY:
+   422 Unprocessable Entity:
+      '???': None
+
+   409 Conflict:
+      120: 'SSH key with name #{name} already exists. Use a different name or delete conflicting key and retry.'
+      121: 'Given public key is already in use. Use different key or delete conflicting key and retry.'
+
+
+LIST_APPLICATIONS:
+   404 Not Found:
+      127: "Domain '#{domain_id}' not found"
+
+
+SHOW_KEY:
+   404 Not Found:
+      118: "SSH key '#{id}' not found"
+
+
+SHOW_DOMAIN:
+   404 Not Found:
+      127: 'Domain #{id} not found.'
+
+
+APPLICATION_EVENT:
+   422 Unprocessable Entity:
+      104: 'Reached gear limit of #{@cloud_user.max_gears}'
+      140: 'Alias already in use.'
+      126: "Invalid application event '#{event}' specified"
+
+   404 Not Found:
+      101: "Application '#{id}' not found"
+      127: 'Domain #{domain_id} not found'
+
+
+LIST_GEARS:
+   404 Not Found:
+      101: "Application '#{app_id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+SHOW_DESCRIPTOR:
+   404 Not Found:
+      101: "Application '#{application_id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+CARTRIDGE_EVENT:
+   404 Not Found:
+      101: "Application '#{id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+   400 Bad Request:
+      129: 'Cartridge #{cartridge} not embedded within application #{id}'
+      126: "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{id}'"
+
+
+ADD_APPLICATION:
+   422 Unprocessable Entity:
+      104: '#{@login} has already reached the gear limit of #{@cloud_user.max_gears}'
+      105: 'Application name is required and cannot be blank'
+      100: "The supplied application name '#{app_name}' already exists"
+      125: 'Invalid template #{template_id}'
+      109: 'Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{carts.to_sentence}.'
+
+   404 Not Found:
+      127: "Domain '#{domain_id}' not found"
+
+   500 Internal Server Error:
+      1: 'Error returned from server #{e.message}'
+
+
+LIST_APP_CARTRIDGES:
+   404 Not Found:
+      101: "Application '#{id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+SHOW_APP_CARTRIDGE:
+   404 Not Found:
+      129: 'Cartridge #{id} not found for application #{application_id}'
+      101: "Application '#{application_id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+DNS_RESOLVABLE:
+   404 Not Found:
+      170: 'Could not resolve DNS #{name}'
+      101: "Application '#{id}' not found"
+      127: 'Domain #{domain_id} not found'
+
+
+SHOW_ESTIMATE:
+   422 Unprocessable Entity:
+      130: '???'
+
+
+LIST_GEAR_GROUPS:
+   404 Not Found:
+      101: "Application '#{app_id}' not found for domain '#{domain_id}'"
+      127: 'Domain #{domain_id} not found'
+
+
+SHOW_QUICKSTART:
+   404 Not Found:
+      118: "Quickstart '#{id}' not found"
+
+
+ADD_DOMAIN:
+   422 Unprocessable Entity:
+      '???': None
+      103: "Namespace '#{namespace}' is already in use. Please choose another."
+
