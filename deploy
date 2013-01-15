@@ -10,6 +10,7 @@ if [ ! -d .env ]; then
 fi
 
 source .env/bin/activate
+easy_install -U distribute
 pip install -r requirements.txt
 pip install gunicorn
 apt-get install -y setproctitle || true
