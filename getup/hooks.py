@@ -4,7 +4,7 @@ import json
 import database
 import bottle
 
-def account(**labels):
+def accounting(**labels):
 	'''Possible labels:
 		HTTP_METHOD:'event_name'
 		HTTP_METHOD:('event_name', validation_callback)
@@ -12,14 +12,14 @@ def account(**labels):
 	class Accounter:
 		def __init__(self, wrapped):
 			if not labels:
-				raise ValueError('Missing account labels')
+				raise ValueError('Missing accounting labels')
 			self.wrapped = wrapped
 			self.labels = labels
 			if 3 < len(labels) < 1:
-				raise TypeError('Invalid account label: %r' % l)
+				raise TypeError('Invalid accounting label: %r' % l)
 			for l in labels.values():
 				if not isinstance(l, (basestring, list, tuple, dict)):
-					raise TypeError('Invalid account label: %r' % l)
+					raise TypeError('Invalid accounting label: %r' % l)
 		def __call__(self, *vargs, **kvargs):
 			res = self.wrapped(*vargs, **kvargs)
 
@@ -50,6 +50,6 @@ def account(**labels):
 					'req_data': save_data,
 					'res_status': res.status_code,
 				}
-				database.account(user=res.user, event_name=event_name, event_value=json.dumps(event_value))
+				database.accounting(user=res.user, event_name=event_name, event_value=json.dumps(event_value))
 			return res
 	return Accounter

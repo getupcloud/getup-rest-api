@@ -2,9 +2,19 @@
 
 import bottle
 from bottle.ext import sqlalchemy
-from sqlalchemy import MetaData, Table
+from sqlalchemy import text, MetaData, Table, Column, Integer, String, Time
 from engine import make_engine
-#from getup import api
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class AccountTable(Base):
+	__tablename__ = 'accounting'
+	id = Column(Integer, primary_key=True)
+	user_id = Column(Integer)
+	time = Column(Time, server_default=text('CURRENT_TIMESTAMP'))
+	name = Column(String(32), default='event')
+	value = Column(String(1024), default='')
 
 user_cols = [
 		'id',
@@ -16,7 +26,7 @@ user_cols = [
 		'authentication_token',
 	]
 
-Account = Users = Keys = None
+Accounting = Users = Keys = None
 
 def start(app):
 	if 'engine' not in app.config.database:
@@ -25,12 +35,19 @@ def start(app):
 			create=False,
 			commit=True,
 			use_kwargs=False))
-		global Users
+
+		# create accounting table
+		engine = app.config.database['engine']
+		if not engine.has_table(AccountTable.__tablename__):
+			AccountTable.metadata.create_all(engine)
+
+		# instanciate ORM
+		global Users, Keys, Accounting
+		## tables from gitlab
 		Users = table(bottle.app(), 'users')
-		global Keys
 		Keys = table(bottle.app(), 'keys')
-		global Account
-		Account = table(bottle.app(), 'account')
+		## our accounting table
+		Accounting = table(bottle.app(), AccountTable.__tablename__)
 
 def table(app, name):
 	engine = app.config.database['engine']
@@ -54,16 +71,8 @@ def keys(user, **where):
 	query = _make_query(Keys, user_id=user['id'], **where)
 	return query.execute()
 
-def account(user, event_name, event_value):
-	'''CREATE TABLE `account` (
-	`id` int(11) NOT NULL AUTO_INCREMENT,
-	`user_id` int(11) NOT NULL,
-	`time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`key` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
-	`value` varchar(1024) COLLATE utf8_unicode_ci DEFAULT NULL,
-	PRIMARY KEY (`id`))
-	'''
-	Account.insert().values(user_id=user['id'], key=event_name, value=event_value).execute()
+def accounting(user, event_name, event_value):
+	Accounting.insert().values(user_id=user['id'], name=event_name, value=event_value).execute()
 
 if __name__ == '__main__':
 	import getup.config
