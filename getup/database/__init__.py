@@ -2,7 +2,7 @@
 
 import bottle
 from bottle.ext import sqlalchemy
-from sqlalchemy import text, MetaData, Table, Column, Integer, String, Time
+from sqlalchemy import text, MetaData, Table, Column, Integer, String, TIMESTAMP
 from engine import make_engine
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -12,7 +12,7 @@ class AccountTable(Base):
 	__tablename__ = 'accounting'
 	id = Column(Integer, primary_key=True)
 	user_id = Column(Integer)
-	time = Column(Time, server_default=text('CURRENT_TIMESTAMP'))
+	time = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
 	name = Column(String(32), default='event')
 	value = Column(String(1024), default='')
 
