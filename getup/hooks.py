@@ -27,13 +27,13 @@ def accounting(**labels):
 			if label is None:
 				return res
 
-			callback, filter_data = None, None
+			filter_callback, filter_data_callback = None, None
 			if len(label) == 3:
 				event_name, filter_callback, filter_data_callback = label
 			elif len(label) == 2:
 				event_name, filter_callback = label
 			else:
-				event_name, filter_callback = label, None
+				event_name = label
 
 			if callable(filter_callback):
 				if not filter_callback(res):
