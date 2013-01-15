@@ -33,7 +33,7 @@ def accounting(**labels):
 			elif len(label) == 2:
 				event_name, filter_callback = label
 			else:
-				event_name = label
+				event_name, filter_callback = label, None
 
 			if callable(filter_callback):
 				if not filter_callback(res):
