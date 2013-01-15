@@ -2,13 +2,13 @@
 
 database = dict(
 	server   = 'mysql',
-	# hostname = 'localhost',
+	hostname = '@@MYSQL_HOSTNAME@@',
 	# port    = 3306,
 	#Or unix sockets:
 	# socket   = '/var/run/mysqld/mysqld.sock',
-	basename = 'gitlab',
-	username = 'gitlab',
-	password = 'GYdJeygVqHJFAoL/KeIBwA==',
+	basename = '@@MYSQL_DATABASE@@',
+	username = '@@MYSQL_USERNAME@@',
+	password = '@@MYSQL_PASSWORD@@',
 	encoding = 'utf8',
 
 	# SQLAlchemy's create_engine() specific parameters.
