@@ -1,8 +1,8 @@
+distribute==0.6.32
 MySQL-python==1.2.4c1
 SQLAlchemy==0.8.0b2
 bottle==0.11.3
 bottle-sqlalchemy==0.3.1
-distribute==0.6.32
 gunicorn==0.17.0
 hammock==0.2.0
 path.py==2.4.1
