@@ -30,7 +30,12 @@ class Gitlab:
 		hdrs = self.headers
 		if headers:
 			hdrs.update(headers)
-		return self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
+		#if isinstance(body, (dict, list, tuple)):
+		#	hdrs['Content-Type'] = 'application'
+		print headers
+		res = self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
+		print res.request.text
+		return res
 
 def api(wrapped):
 	@wraps(wrapped)

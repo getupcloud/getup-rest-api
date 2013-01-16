@@ -9,9 +9,10 @@ from getup.response import response
 @gitlab.api
 def post(user, prov, api, path):
 	cookies = bottle.request.cookies
-	res = prov.add_key(path=path, body=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=dict(cookies))
-	print 'BROKER:', res, res.text
-	if res.ok:
+	#res = prov.add_key(path=path, body=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=dict(cookies))
+	#print 'BROKER:', res, res.text
+	#if res.ok:
+	if True:
 		body = {
 			'title': bottle.request.params.name,
 			'key': '%s %s %s' % (bottle.request.params.type, bottle.request.params.content, user.email),
@@ -22,6 +23,7 @@ def post(user, prov, api, path):
 		print api_res.request.headers
 		if not api_res.ok:
 			print 'WARNING: Unable to post user key to gitlab:', api_res.status_code
+	res = api_res
 	return response(user, res)
 
 @aaa.authoritative_user
