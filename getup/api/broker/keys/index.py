@@ -16,7 +16,7 @@ def post(user, prov, api, path):
 			'key': '%s %s' % (bottle.request.params.type, bottle.request.params.content),
 		}
 		api_res = api.add_key(body=body, headers=util.filter_headers(), cookies=cookies)
-		if not api_res.ok
+		if not api_res.ok:
 			print 'WARNING: Unable to post user key to gitlab:', api_res.status_code
 	return res
 
