@@ -9,7 +9,7 @@ from getup.response import response
 @gitlab.api
 def post(user, prov, api, path):
 	cookies = bottle.request.cookies
-	res = prov.add_key(path=path, body=bottle.request.body.read(), headers=bottle.request.headers, cookies=cookies)
+	res = prov.add_key(path=path, body=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=dict(cookies))
 	if res.ok:
 		body = {
 			'title': bottle.request.params.name,
