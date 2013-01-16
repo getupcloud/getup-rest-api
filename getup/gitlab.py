@@ -30,6 +30,7 @@ class Gitlab:
 		hdrs = self.headers
 		if headers:
 			hdrs.update(headers)
+		hdrs['Content-Type'] = 'application/json'
 		#if isinstance(body, (dict, list, tuple)):
 		#	hdrs['Content-Type'] = 'application'
 		print hdrs
