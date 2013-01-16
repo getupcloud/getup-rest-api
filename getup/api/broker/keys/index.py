@@ -10,7 +10,7 @@ from getup.response import response
 def post(user, prov, api, path):
 	try:
 		return '[%s, %s, %s]\n' % (bottle.params.name, bottle.params.type, bottle.params.content)
-	except Exceptin, ex:
+	except Exception, ex:
 		return 'ERR: %s\n' % ex
 	return _data_request(user, prov(path).POST)
 
