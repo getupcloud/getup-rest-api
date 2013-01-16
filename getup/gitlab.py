@@ -17,16 +17,20 @@ def user(userid=None, token=None):
 
 class Gitlab:
 	def __init__(self):
-		self.headers = { app.config.webgit['token_header']: app.config.user['authentication_token'] }
+		self.headers = {
+			app.config.webgit['token_header']: app.config.user['authentication_token'],
+			'Content-Type': 'application/json',
+		}
 		self.api = Hammock(app.config.webgit['base_url'].rstrip('/'), headers=self.headers)
 
 	def __getattr__(self, name):
 		return getattr(self.api, name)
 
-	def add_key(self, body, **kvargs):
-		if 'headers' in kvargs:
-			kvargs['headers'].update(self.headers)
-		return self.api.api.v2.user.keys.POST(data=body, **kvargs)
+	def add_key(self, body, headers=None, **kvargs):
+		hdrs = self.headers
+		if headers:
+			hdrs.update(headers)
+		return self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
 
 def api(wrapped):
 	@wraps(wrapped)

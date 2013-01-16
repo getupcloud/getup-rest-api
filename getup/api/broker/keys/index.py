@@ -14,8 +14,9 @@ def post(user, prov, api, path):
 	if res.ok:
 		body = {
 			'title': bottle.request.params.name,
-			'key': '%s %s' % (bottle.request.params.type, bottle.request.params.content),
+			'key': '%s %s %s' % (bottle.request.params.type, bottle.request.params.content, user.email),
 		}
+		print 'GITLAB:', body
 		api_res = api.add_key(body=body, headers=util.filter_headers(), cookies=cookies)
 		print 'GITLAB:', api_res, api_res.text
 		if not api_res.ok:
