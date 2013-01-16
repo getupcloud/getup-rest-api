@@ -1,6 +1,7 @@
 import bottle
 from hammock import Hammock
 from functools import wraps
+import json
 
 app = bottle.app()
 
@@ -34,7 +35,7 @@ class Gitlab:
 		#if isinstance(body, (dict, list, tuple)):
 		#	hdrs['Content-Type'] = 'application'
 		print hdrs
-		res = self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
+		res = self.api.api.v2.user.keys.POST(data=json.dumps(body), headers=hdrs, **kvargs)
 		#print dir(res.request)
 		for k in dir(res.request):
 			print '++ %s :%s' % (k,getattr(res.request, k))
