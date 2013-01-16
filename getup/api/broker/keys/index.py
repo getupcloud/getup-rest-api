@@ -9,7 +9,8 @@ from getup.response import response
 @gitlab.api
 def post(user, prov, api, path):
 	try:
-		return '[%s, %s, %s]\n' % (bottle.params.name, bottle.params.type, bottle.params.content)
+		params = bottle.request.params
+		return '[%s, %s, %s]\n' % (params.name, params.type, params.content)
 	except Exception, ex:
 		return 'ERR: %s\n' % ex
 	return _data_request(user, prov(path).POST)
