@@ -20,7 +20,7 @@ def post(user, prov, api, path):
 		print 'GITLAB:', api_res, api_res.text
 		if not api_res.ok:
 			print 'WARNING: Unable to post user key to gitlab:', api_res.status_code
-	return res
+	return response(user, res)
 
 @aaa.authoritative_user
 @provider.provider
