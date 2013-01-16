@@ -32,7 +32,7 @@ class Gitlab:
 			hdrs.update(headers)
 		#if isinstance(body, (dict, list, tuple)):
 		#	hdrs['Content-Type'] = 'application'
-		print headers
+		print hdrs
 		res = self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
 		print res.request.text
 		return res
