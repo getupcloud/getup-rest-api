@@ -21,6 +21,9 @@ class OpenShift(Provider):
 	def __call__(self, path):
 		return self.api(path if path else '')
 
+	def add_key(self, path, body, **kvargs):
+		return self.api(path).POST(data=body, **kvargs)
+
 """
 	#
 	# Domains

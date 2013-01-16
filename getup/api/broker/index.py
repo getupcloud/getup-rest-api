@@ -29,4 +29,3 @@ def delete(user, prov, path):
 def _data_request(user, method):
 	res = method(data=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
 	return response(user, res)
-

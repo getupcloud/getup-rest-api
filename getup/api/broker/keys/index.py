@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, provider, gitlab
+from getup import aaa, provider, gitlab, util
 from getup.response import response
 
 @aaa.authoritative_user
 @provider.provider
 @gitlab.api
 def post(user, prov, api, path):
-	try:
-		params = bottle.request.params
-		return '[%s, %s, %s]\n' % (params.name, params.type, params.content)
-	except Exception, ex:
-		return 'ERR: %s\n' % ex
-	return _data_request(user, prov(path).POST)
+	cookies = bottle.request.cookies
+	res = prov.add_key(path=path, body=bottle.request.body.read(), headers=bottle.request.headers, cookies=cookies)
+	if res.ok:
+		body = {
+			'title': bottle.request.params.name,
+			'key': '%s %s' % bottle.request.params.type, bottle.request.params.content
+		}
+		api_res = api.add_key(body=body, headers=util.filter_headers(), cookies=cookies)
+		if not api_res.ok
+			print 'WARNING: Unable to post user key to gitlab:', api_res.status_code
+	return res
 
 @aaa.authoritative_user
 @provider.provider
@@ -25,7 +30,7 @@ def put(user, prov):
 def delete(user, prov):
 	return _data_request(user, prov(path).DELETE)
 
-def _data_request(user, method):
-	res = method(data=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
+def _data_request(user, method, body=None):
+	res = method(data=body or bottle.request.body.read(), headers=util.filter_headers(), cookies=bottle.request.cookies)
 	return response(user, res)
 

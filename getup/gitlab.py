@@ -23,6 +23,9 @@ class Gitlab:
 	def __getattr__(self, name):
 		return getattr(self.api, name)
 
+	def add_key(self, body, **kvargs):
+		return self.api.api.v2.user.keys.POST(data=body, **kvargs)
+
 def api(wrapped):
 	@wraps(wrapped)
 	def wrapper(user, *vargs, **kvargs):
