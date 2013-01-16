@@ -13,7 +13,7 @@ def post(user, prov, api, path):
 	if res.ok:
 		body = {
 			'title': bottle.request.params.name,
-			'key': '%s %s' % bottle.request.params.type, bottle.request.params.content
+			'key': '%s %s' % (bottle.request.params.type, bottle.request.params.content),
 		}
 		api_res = api.add_key(body=body, headers=util.filter_headers(), cookies=cookies)
 		if not api_res.ok
