@@ -35,7 +35,7 @@ class Gitlab:
 		print hdrs
 		res = self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
 		#print dir(res.request)
-		for k, v in dir(res.request).iteritems():
+		for k in dir(res.request):
 			print '++ %s :%s' % (k,getattr(res.request, k))
 		return res
 
