@@ -2,7 +2,7 @@
 
 import bottle
 
-def filter_headers(headers=['accept', 'host', 'authorization']):
+def filter_headers(headers=['accept', 'host', 'content-length', 'authorization']):
 	_headers = {}
 	for k, v in bottle.request.headers.iteritems():
 		if k.lower() not in headers:
