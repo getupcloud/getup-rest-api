@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, provider
+from getup import aaa, provider, gitlab
 from getup.response import response
 
 @aaa.authoritative_user
 @provider.provider
+@gitlab.api
 def post(user, prov, api, path):
 	return 'OK\n'
 	return _data_request(user, prov(path).POST)
