@@ -34,7 +34,9 @@ class Gitlab:
 		#	hdrs['Content-Type'] = 'application'
 		print hdrs
 		res = self.api.api.v2.user.keys.POST(data=body, headers=hdrs, **kvargs)
-		print res.request.text
+		#print dir(res.request)
+		for k, v in dir(res.request).iteritems():
+			print '++ %s :%s' % (k,getattr(res.request, k))
 		return res
 
 def api(wrapped):
