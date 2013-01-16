@@ -19,6 +19,7 @@ def post(user, prov, api, path):
 		print 'GITLAB:', body
 		api_res = api.add_key(body=body, headers=util.filter_headers(), cookies=cookies)
 		print 'GITLAB:', api_res, api_res.text
+		print api_res.request.headers
 		if not api_res.ok:
 			print 'WARNING: Unable to post user key to gitlab:', api_res.status_code
 	return response(user, res)
