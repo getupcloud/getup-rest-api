@@ -108,6 +108,17 @@ def account_cartridges(res):
 def handle_events_cart(**kvargs):
 	return _method(api.broker, path=bottle.request.path)
 
+@bottle.route('/broker/rest/user/keys',          method=ALL_METHODS)
+@bottle.route('/broker/rest/user/keys/',         method=ALL_METHODS)
+@bottle.route('/broker/rest/user/keys/<name>',   method=ALL_METHODS)
+@bottle.route('/broker/rest/user/keys/<name>/',  method=ALL_METHODS)
+@aaa.valid_user
+def handle_broker_keys(name=None):
+	if bottle.request.method in [ 'POST', 'PUT', 'DELETE' ]:
+		return _method(api.broker.keys, name=name, path=bottle.request.path)
+	else:
+		return _method(api.broker, path=bottle.request.path)
+
 #
 # Broker passthru
 #
