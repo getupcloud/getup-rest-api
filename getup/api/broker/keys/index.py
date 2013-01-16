@@ -8,7 +8,10 @@ from getup.response import response
 @provider.provider
 @gitlab.api
 def post(user, prov, api, path):
-	return 'OK\n'
+	try:
+		return '[%s, %s, %s]\n' % (bottle.params.name, bottle.params.type, bottle.params.content)
+	except Exceptin, ex:
+		return 'ERR: %s\n' % ex
 	return _data_request(user, prov(path).POST)
 
 @aaa.authoritative_user
