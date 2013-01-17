@@ -17,9 +17,9 @@ def post():
 
 		if event['event_name'] == 'key_save':
 			try:
-				type, content, _ = event['key'].split()
+				type, key , _ = event['key'].split()
 			except:
-				type, content = event['key'].split()
+				type, key = event['key'].split()
 			res = prov.add_key(name=event['title'], type=type, content=key)
 		else:
 			res = prov.del_key(name=event['title'], type=type, content=key)
