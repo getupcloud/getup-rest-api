@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, codec, provider
+from getup import aaa, codec, provider, http
 from getup import database, gitlab, util
 from getup.response import response
 
