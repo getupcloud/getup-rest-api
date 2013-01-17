@@ -24,6 +24,9 @@ class OpenShift(Provider):
 	def add_key(self, name, type, content, **kvargs):
 		return self.api('/broker/rest/user/keys').POST(data={'name': name, 'type': type, 'content': content}, **kvargs)
 
+	def del_key(self, name, **kvargs):
+		return self.api('/broker/rest/user/keys/%s' % name).DELETE(**kvargs)
+
 """
 	#
 	# Domains
