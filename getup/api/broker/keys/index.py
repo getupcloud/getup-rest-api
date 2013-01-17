@@ -8,7 +8,7 @@ from getup.response import response
 @gitlab.api
 def post(user, prov, api, path):
 	# post key to openshift
-	res = prov.add_key(**bottle.request.forms, headers=bottle.request.headers, cookies=bottle.request.cookies)
+	res = prov.add_key(headers=bottle.request.headers, cookies=bottle.request.cookies, **dict(bottle.request.forms))
 
 	# post key to gitlab
 	# this will trigger a system hook, wich in turn will call us again on /gitlab/hook
