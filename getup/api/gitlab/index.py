@@ -20,7 +20,7 @@ def post():
 			type, content = event['key'].split()
 		res = prov.add_key(name=event['title'], type=type, content=key)
 	else:
-		return response(None, status=http.HTTP_UNPROCESSABLE_ENTITY)
+		return response(None, status=http.HTTP_OK)
 	return _data_request(user, api(path).POST)
 
 @aaa.authoritative_user
