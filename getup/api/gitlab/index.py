@@ -22,7 +22,7 @@ def post():
 				type, key = event['key'].split()
 			res = prov.add_key(name=event['title'], type=type, content=key)
 		else:
-			res = prov.del_key(name=event['title'], type=type, content=key)
+			res = prov.del_key(name=event['title'])
 	else:
 		return response(None, status=http.HTTP_OK)
 	return response(user, res)
