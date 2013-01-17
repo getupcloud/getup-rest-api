@@ -9,12 +9,17 @@ app = bottle.app()
 def _auth_user():
 	#todo: secure token
 	try:
-		if 'token' in bottle.request.params:
+		# ugly...
+		try:
 			kind, auth_token = 'token', bottle.request.params['token']
-		elif 'Authorization' in bottle.request.headers:
-			kind, auth_token = bottle.request.headers['Authorization'].split(None, 1)
-		else:
-			return False
+		except KeyError:
+			try:
+				kind, auth_token = 'token', bottle.request.params['private_token']
+			except KeyError:
+				try:
+					kind, auth_token = bottle.request.headers['Authorization'].split(None, 1)
+				except KeyError:
+					return False
 
 		kind = kind.lower()
 		if kind == 'basic':
