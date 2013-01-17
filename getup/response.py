@@ -120,7 +120,7 @@ class ResponseForbidden(APIResponse):
 		APIResponse.__init__(self, status=http.HTTP_FORBIDDEN, headers={'WWW-Authenticate': _auth_method()}, **data)
 
 def response(user, res=None, status=None, body='', headers=None):
-	assert res or status, 'response: error: invalid parameters'
+	assert res is not None or status is not None, 'response: error: invalid parameters'
 	hdrs = { 'Cache-Control': 'no-cache' }
 	if res:
 		exclude_headers = [ 'status' ]
