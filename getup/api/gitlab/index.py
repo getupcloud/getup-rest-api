@@ -11,9 +11,10 @@ def post():
 	# If it was triggered by api (/broker), broker will return 409-120/121 since /broker
 	# already posted the key (not a big concern right now).
 	event = bottle.request.json
+	print event
 	if event['event_name'] == 'key_save':
 		user = database.user(email=event['owner_email'])
-		prov = provider.OpenShift(iusername=user['email'], password=user['authentication_token'])
+		prov = provider.OpenShift(username=user['email'], password=user['authentication_token'])
 		try:
 			type, content, _ = event['key'].split()
 		except:
