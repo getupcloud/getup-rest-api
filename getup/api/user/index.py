@@ -5,8 +5,6 @@ from getup import aaa, codec
 from getup import database, gitlab, util
 from getup.response import response
 
-app = bottle.app()
-
 @aaa.authoritative_user
 @gitlab.api
 def get(user, api, path):

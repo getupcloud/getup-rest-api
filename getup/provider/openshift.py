@@ -21,8 +21,8 @@ class OpenShift(Provider):
 	def __call__(self, path):
 		return self.api(path if path else '')
 
-	def add_key(self, path, body, **kvargs):
-		return self.api(path).POST(data=body, **kvargs)
+	def add_key(self, name, type, content, **kvargs):
+		return self.api('/broker/rest/user/keys').POST(data={'name': name, 'type': type, 'content': content}, **kvargs)
 
 """
 	#

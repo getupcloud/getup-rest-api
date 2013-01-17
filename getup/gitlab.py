@@ -27,11 +27,12 @@ class Gitlab:
 	def __getattr__(self, name):
 		return getattr(self.api, name)
 
-	def add_key(self, body, headers=None, **kvargs):
+	def add_key(self, title, key, headers=None, **kvargs):
 		hdrs = self.headers
 		if headers:
 			hdrs.update(headers)
 		hdrs['Content-Type'] = 'application/json'
+		body = {'title': title, 'key': key }
 		return self.api.api.v2.user.keys.POST(data=json.dumps(body), headers=hdrs, **kvargs)
 
 def api(wrapped):

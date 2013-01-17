@@ -20,8 +20,8 @@ def get(user, keyname=None, keyident=None):
 @aaa.authoritative_user
 @proto.content_type('application/json')
 @codec.decode(codec.json)
-def post(user, keyname, content, *vargs, **kvargs):
-	key = model.Key(title=keyname, key=content['key'])
+def post(user, title, content, *vargs, **kvargs):
+	key = model.Key(title=title, key=content['key'])
 	ret = gitlab.Gitlab(user['authentication_token']).user.keys.POST(data=key)
 	if ret.status_code != 201:
 		return response.ResponseBadRequest()

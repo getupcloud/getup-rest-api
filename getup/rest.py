@@ -167,6 +167,14 @@ def handle_user(name):
 	return _method(api.users, name=name, path='/api/v2/users', userid=name)
 
 #
+# Gitlab system hooks
+#
+@bottle.post('/gitlab/hook')
+@aaa.admin_user
+def handle_gitlab_hook():
+	return _method(api.gitlab)
+
+#
 # Health check
 #
 @bottle.get('/health_check')

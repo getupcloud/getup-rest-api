@@ -5,20 +5,32 @@ from getup import aaa, provider, gitlab, util
 from getup.response import response
 
 @aaa.authoritative_user
-@provider.provider
 @gitlab.api
 def post(user, prov, api, path):
-	cookies = bottle.request.cookies
-	res = prov.add_key(path=path, body=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=dict(cookies))
+	# post key to openshift
+	res = prov.add_key(**bottle.request.forms, headers=bottle.request.headers, cookies=bottle.request.cookies)
+
+	# post key to gitlab
+	# this will trigger a system hook, wich in turn will call us again on /gitlab/hook
+	title = bottle.request.params.name,
+	key = '%s %s %s' % (bottle.request.forms.type, bottle.request.params.content, user.email),
+	res_api = api.add_key(title=title, key=key, headers=util.filter_headers())
+	if not res_api.ok:
+		print 'WARNING: Unable to post user key to gitlab: status=%s, key=%s %s' % (res_api.status_code, title, key)
+
+	# return openshift status only
+	return response(user, res)
+
+'''
+	res = prov.add_key(**bottle.request.forms)
 	if res.ok:
-		body = {
-			'title': bottle.request.params.name,
-			'key': '%s %s %s' % (bottle.request.params.type, bottle.request.params.content, user.email),
-		}
-		api_res = api.add_key(body=body, headers=util.filter_headers(), cookies=cookies)
+		title = bottle.request.params.name,
+		key = '%s %s %s' % (bottle.request.params.type, bottle.request.params.content, user.email),
+		api_res = api.add_key(title=title, key=key, headers=util.filter_headers(), cookies=cookies)
 		if not api_res.ok:
 			print 'WARNING: Unable to post user key to gitlab: status=%s, key=%s' % (api_res.status_code, body)
 	return response(user, res)
+'''
 
 @aaa.authoritative_user
 @provider.provider

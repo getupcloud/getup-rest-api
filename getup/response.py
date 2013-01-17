@@ -119,14 +119,23 @@ class ResponseForbidden(APIResponse):
 	def __init__(self, **data):
 		APIResponse.__init__(self, status=http.HTTP_FORBIDDEN, headers={'WWW-Authenticate': _auth_method()}, **data)
 
-exclude_headers = [ 'status' ]
+def response(user, res=None, status=None, body='', headers=None):
+	assert res or status, 'response: error: invalid parameters'
+	hdrs = { 'Cache-Control': 'no-cache' }
+	if res:
+		exclude_headers = [ 'status' ]
+		status_line = '%i %s' % (res.status_code, res.reason or res.raw.reason)
+		hdrs.update([ (k, v) for (k,v) in res.headers.iteritems() if k.lower() not in exclude_headers ])
+		body = res.content
+	else:
+		status_line = '%i %s' % (status, http.responses(status))
+	if headers:
+		hdrs.update(headers)
 
-def response(user, res):
-	status_line = '%i %s' % (res.status_code, res.reason or res.raw.reason)
-	headers = dict([ (k, v) for (k,v) in res.headers.iteritems() if k.lower() not in exclude_headers ])
-	resp = bottle.HTTPResponse(body=res.content, status=status_line, header={'Cache-Control': 'no-cache'})
+	resp = bottle.HTTPResponse(body=body, status=status_line, **hdrs)
+
 	if not hasattr(resp, 'request'):
-		setattr(resp, 'request', res.request)
+		setattr(resp, 'request', res.request if res else None)
 	if not hasattr(resp, 'user'):
 		setattr(resp, 'user', user)
 	return resp
