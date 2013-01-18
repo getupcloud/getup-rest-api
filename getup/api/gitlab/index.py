@@ -11,6 +11,12 @@ def get(user, api, path):
 	url = api(path)
 	return _request(user, url.GET)
 
+@aaa.authoritative_user
+@gitlab.api
+def post(user, api, path):
+	url = api(path)
+	return _request(user, url.POST)
+
 def _request(user, method, body=None):
-	res = method(data=body or bottle.request.body.read(-1), headers=util.filter_headers(), cookies=bottle.request.cookies)
+	res = method(data=body or bottle.request.body.read(-1), headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	return response(user, res)
