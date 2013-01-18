@@ -14,12 +14,12 @@ ALL_METHODS = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']
 def startup():
 	app.config.user = None
 	bottle.response.headers['Cache-Control'] = 'no-cache'
-	print time.time(),'-', bottle.request.method, bottle.request.path
+	#print time.time(),'-', bottle.request.method, bottle.request.path
 
 @bottle.hook('after_request')
 def teardown():
 	app.config.user = None
-	print time.time(),'-', bottle.response.status_code
+	#print time.time(),'-', bottle.response.status_code
 
 def _method(handler, *vargs, **kvargs):
 	name = bottle.request.method
