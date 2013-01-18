@@ -201,10 +201,10 @@ def handle_user(name):
 #
 @bottle.route('/api/v2/<path:path>', method=ALL_METHODS)
 @aaa.valid_user
-def handle_user(name):
+def handle_user(**kvargs):
 	'''Gitlab everything else
 	'''
-	return _method(api.gitlab, name=name, path='/api/v2/users', userid=name)
+	return _method(api.gitlab, path=bottle.request.path)
 
 #
 # Gitlab system hooks
