@@ -165,7 +165,7 @@ def handle_proj(**kvargs):
 	Account for creating/deleting projects.
 	'''
 	if bottle.request.method in [ 'POST', 'DELETE' ]:
-		return _method(api.gitlab.projects, ath=bottle.request.path)
+		return _method(api.gitlab.projects, path=bottle.request.path)
 	return _method(api.gitlab, path=bottle.request.path)
 
 #
