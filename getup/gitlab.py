@@ -35,6 +35,12 @@ class Gitlab:
 		body = {'title': title, 'key': key }
 		return self.api.api.v2.user.keys.POST(data=json.dumps(body), headers=hdrs, **kvargs)
 
+	def del_key(self, id, headers=None, **kvargs):
+		hdrs = self.headers
+		if headers:
+			hdrs.update(headers)
+		return self.api.api.v2.user.keys(id).DELETE(headers=hdrs, **kvargs)
+
 def api(wrapped):
 	@wraps(wrapped)
 	def wrapper(user, *vargs, **kvargs):
