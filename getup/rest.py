@@ -142,7 +142,10 @@ def handle_broker(path=None):
 def handle_user(keyid=None):
 	'''User profile
 	'''
-	return _method(api.user, path=bottle.request.path)
+	if keyid is not None:
+		return _method(api.user, keyid=keyid, path=bottle.request.path)
+	else:
+		return _method(api.user, path=bottle.request.path)
 #
 # Gitlab passthru
 #
