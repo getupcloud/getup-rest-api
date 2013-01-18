@@ -160,14 +160,12 @@ def handle_broker(path=None):
 @bottle.route('/api/v2/projects/<project>/', method=ALL_METHODS)
 @aaa.valid_user
 @hooks.accounting(POST='create_proj', DELETE='delete_proj')
-def handle_proj(project=None):
+def handle_proj(**kvargs):
 	'''Gitlab project administration.
 	Account for creating/deleting projects.
 	'''
-	if bottle.request.method == 'POST':
+	if bottle.request.method in [ 'POST', 'DELETE' ]:
 		return _method(api.gitlab.projects, ath=bottle.request.path)
-	elif bottle.request.method == 'DELETE':
-		return _method(api.gitlab.projects, project=project, path=bottle.request.path)
 	return _method(api.gitlab, path=bottle.request.path)
 
 #
