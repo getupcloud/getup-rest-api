@@ -10,7 +10,9 @@ def post():
 	# If it was triggered by gitlab's system hooks (web or /api), broker will return OK.
 	# If it was triggered by api (/broker), broker will return 409-120/121 since /broker
 	# already posted the key (not a big concern right now).
+	user = None
 	event = bottle.request.json
+	print 'HOOK EVENT:', event
 	if event['event_name'] in [ 'key_save', 'key_destroy' ]:
 		user = database.user(email=event['owner_email'])
 		prov = provider.OpenShift(username=user['email'], password=user['authentication_token'])
