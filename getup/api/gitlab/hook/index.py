@@ -26,6 +26,7 @@ def post():
 			res = prov.add_key(name=event['title'], type=type, content=key)
 		else:
 			res = prov.del_key(name=event['title'])
+		return response(user, res)
 	elif event['event_name'] in [ 'project_create', 'project_destroy' ]:
 		user = database.user(email=event['owner_email'])
 		ev_name = 'create_proj' if event['event_name'] == 'project_create' else 'delete_proj'
@@ -35,6 +36,5 @@ def post():
 			'res_status': 200,
 		}
 		hooks.account(user, ev_name, ev_value)
-	else:
-		return response(user=None, status=http.HTTP_OK)
-	return response(user, res)
+
+	return response(user, status=http.HTTP_OK)
