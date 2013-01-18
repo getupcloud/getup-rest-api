@@ -2,5 +2,3 @@
 
 from index import *
 import keys
-import user
-import users
