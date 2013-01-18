@@ -31,9 +31,9 @@ def _method(handler, *vargs, **kvargs):
 	return method(*vargs, **kvargs)
 
 #
-# Routes
+# Main entry point
 #
-
+#TODO: return subsystems entry points
 @bottle.route('/')
 def handle_root():
 	'''Root handler
@@ -48,24 +48,22 @@ def handle_status():
 	return _method(api.status)
 
 #
-# Domains
+# Broker domains
 #
 @bottle.route('/broker/rest/domains',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/', method=ALL_METHODS)
-@aaa.valid_user
-@hooks.accounting(POST='create_domain')
-def handle_domains(**kvargs):
-	return _method(api.broker, path=bottle.request.path)
-
 @bottle.route('/broker/rest/domains/<domain>',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/', method=ALL_METHODS)
 @aaa.valid_user
-@hooks.accounting(DELETE='delete_domain')
-def handle_domain(**kvargs):
+@hooks.accounting(POST='create_domain', DELETE='delete_domain')
+def handle_domains(**kvargs):
+	'''Broker domain administration.
+	Account for creating/deleting domains.
+	'''
 	return _method(api.broker, path=bottle.request.path)
 
 #
-# Aplications
+# Broker aplications
 #
 @bottle.route('/broker/rest/domains/<domain>/applications',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/', method=ALL_METHODS)
@@ -74,9 +72,14 @@ def handle_domain(**kvargs):
 @aaa.valid_user
 @hooks.accounting(POST='create_app', DELETE='delete_app')
 def handle_app(**kvargs):
+	'''Broker application administration.
+	Account for creating/deleting applications.
+	'''
 	return _method(api.broker, path=bottle.request.path)
 
 def account_events(res):
+	'''Callback for hook.accounting of relevant events only.
+	'''
 	return bottle.request.params.event in [ 'start', 'stop', 'force-stop', 'scale-up', 'scale-down' ]
 
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/events',  method=ALL_METHODS)
@@ -84,10 +87,13 @@ def account_events(res):
 @aaa.valid_user
 @hooks.accounting(POST=('events_app', account_events))
 def handle_events_app(**kvargs):
+	'''Broker application events.
+	Account for relevante events only (ex: scale-up/scale-down).
+	'''
 	return _method(api.broker, path=bottle.request.path)
 
 #
-# Cartridges
+# Broker cartridges
 #
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/', method=ALL_METHODS)
@@ -96,9 +102,14 @@ def handle_events_app(**kvargs):
 @aaa.valid_user
 @hooks.accounting(POST='create_cart', DELETE='delete_cart')
 def handle_cart(**kvargs):
+	'''Broker cartridge administration.
+	Account for creating/deleting cartridges.
+	'''
 	return _method(api.broker, path=bottle.request.path)
 
 def account_cartridges(res):
+	'''Callback for hook.accounting of relevant events only.
+	'''
 	return bottle.request.params.event in [ 'start', 'stop' ]
 
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events',  method=ALL_METHODS)
@@ -106,14 +117,23 @@ def account_cartridges(res):
 @aaa.valid_user
 @hooks.accounting(POST=('events_cart', account_cartridges))
 def handle_events_cart(**kvargs):
+	'''Broker cartridge events.
+	Account for relevante events only (ex: start/stop).
+	'''
 	return _method(api.broker, path=bottle.request.path)
 
+#
+# Broker user keys
+#
 @bottle.route('/broker/rest/user/keys',          method=ALL_METHODS)
 @bottle.route('/broker/rest/user/keys/',         method=ALL_METHODS)
 @bottle.route('/broker/rest/user/keys/<keyname>',   method=ALL_METHODS)
 @bottle.route('/broker/rest/user/keys/<keyname>/',  method=ALL_METHODS)
 @aaa.valid_user
 def handle_broker_keys(keyname=None):
+	'''Broker keys administration.
+	Garantees a single key to spread to all backends.
+	'''
 	if bottle.request.method == 'POST':
 		return _method(api.broker.keys, path=bottle.request.path)
 	elif bottle.request.method in [ 'PUT', 'DELETE' ]:
@@ -127,10 +147,12 @@ def handle_broker_keys(keyname=None):
 @bottle.route('/broker/rest/<path:path>')
 @aaa.valid_user
 def handle_broker(path=None):
+	'''Broker everything else
+	'''
 	return _method(api.broker, path=bottle.request.path)
 
 #
-# Single user
+# Gitlab current user
 #
 @bottle.route('/api/v2/user',               method=ALL_METHODS)
 @bottle.route('/api/v2/user/',              method=ALL_METHODS)
@@ -140,21 +162,20 @@ def handle_broker(path=None):
 @bottle.route('/api/v2/user/keys/<keyid>/', method=ALL_METHODS)
 @aaa.valid_user
 def handle_user(keyid=None):
-	'''User profile
+	'''Gitlab user (owner) administration
+	Garantees a single key to spread to all backends.
 	'''
 	if keyid is not None:
-		return _method(api.user, keyid=keyid, path=bottle.request.path)
+		return _method(api.gitlab.user, keyid=keyid, path=bottle.request.path)
 	else:
-		return _method(api.user, path=bottle.request.path)
-#
-# Gitlab passthru
-#
-# TODO
+		return _method(api.gitlab.user, path=bottle.request.path)
 
 #
-# Users admin
+# Gitlab users admin
 #
 def account_users_filter(res):
+	'''Callback for hooks.accouting to prevent saving any sensitive data to DB
+	'''
 	content = dict(filter(lambda (k,n): k != 'password', bottle.request.json.iteritems()))
 	return content
 
@@ -162,18 +183,28 @@ def account_users_filter(res):
 @bottle.route('/api/v2/users/', method=ALL_METHODS)
 @aaa.admin_user
 @hooks.accounting(POST=('create_user', None, account_users_filter), DELETE='delete_user')
-def handle_user():
-	'''User profile
+def handle_current_user():
+	'''Gitlab current user administration
 	'''
-	return _method(api.users, path=bottle.request.path)
+	return _method(api.gitlab.users, path=bottle.request.path)
 
 @bottle.route('/api/v2/users/<name>',  method=ALL_METHODS)
 @bottle.route('/api/v2/users/<name>/', method=ALL_METHODS)
 @aaa.admin_user
 def handle_user(name):
-	'''User profile
+	'''Gitlab user administration
 	'''
-	return _method(api.users, name=name, path='/api/v2/users', userid=name)
+	return _method(api.gitlab.users, name=name, path='/api/v2/users', userid=name)
+
+#
+# Gitlab passthru
+#
+@bottle.route('/api/v2/<path:path>', method=ALL_METHODS)
+@aaa.valid_user
+def handle_user(name):
+	'''Gitlab everything else
+	'''
+	return _method(api.gitlab, name=name, path='/api/v2/users', userid=name)
 
 #
 # Gitlab system hooks
@@ -181,12 +212,16 @@ def handle_user(name):
 @bottle.post('/gitlab/hook')
 @aaa.admin_user
 def handle_gitlab_hook():
-	return _method(api.gitlab)
+	'''Handler for gitlab system hooks
+	'''
+	return _method(api.gitlab.hook)
 
 #
 # Health check
 #
 @bottle.get('/health_check')
 def handle_health_check():
+	'''Simple healthcheck
+	'''
 	bottle.response.content_type = 'text/plain'
 	return 'OK'
