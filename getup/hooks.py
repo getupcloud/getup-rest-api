@@ -51,5 +51,6 @@ def accounting(**labels):
 					'res_status': res.status_code,
 				}
 				database.accounting(user=res.user, event_name=event_name, event_value=json.dumps(event_value))
+				print 'account:', user.email, event_name
 			return res
 	return Accounter

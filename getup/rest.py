@@ -152,6 +152,25 @@ def handle_broker(path=None):
 	return _method(api.broker, path=bottle.request.path)
 
 #
+# Gitlab projects
+#
+@bottle.route('/api/v2/projects',            method=ALL_METHODS)
+@bottle.route('/api/v2/projects/',           method=ALL_METHODS)
+@bottle.route('/api/v2/projects/<project>',  method=ALL_METHODS)
+@bottle.route('/api/v2/projects/<project>/', method=ALL_METHODS)
+@aaa.valid_user
+@hooks.accounting(POST='create_proj', DELETE='delete_proj')
+def handle_proj(project=None):
+	'''Gitlab project administration.
+	Account for creating/deleting projects.
+	'''
+	if bottle.request.method == 'POST':
+		return _method(api.gitlab.projects, ath=bottle.request.path)
+	elif bottle.request.method == 'DELETE':
+		return _method(api.gitlab.projects, project=project, path=bottle.request.path)
+	return _method(api.gitlab, path=bottle.request.path)
+
+#
 # Gitlab current user
 #
 @bottle.route('/api/v2/user',               method=ALL_METHODS)
