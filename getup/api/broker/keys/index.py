@@ -33,7 +33,7 @@ def put(user, prov):
 def delete(user, prov, api, keyname, path):
 	# first delete gitlab's key
 	key = database.keys(user, title=keyname)
-	print key
+	print key['title'], key['id']
 	return 'OK\n'
 	# then openshit's key
 	return _data_request(user, prov(path).DELETE)
