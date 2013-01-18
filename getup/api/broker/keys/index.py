@@ -9,12 +9,12 @@ from getup.response import response
 @gitlab.api
 def post(user, prov, api, path):
 	# post key to openshift
-	res = prov.add_key(headers=bottle.request.headers, cookies=bottle.request.cookies, **dict(bottle.request.forms))
+	res = prov.add_key(headers=dict(bottle.request.headers), cookies=dict(bottle.request.cookies), **dict(bottle.request.params))
 
 	# post key to gitlab
 	# this will trigger a system hook, wich in turn will call us again on /gitlab/hook
-	title = bottle.request.params.name,
-	key = '%s %s %s' % (bottle.request.forms.type, bottle.request.params.content, user.email),
+	title = bottle.request.params.name
+	key = '%s %s %s' % (bottle.request.params.type, bottle.request.params.content, user.email)
 	res_api = api.add_key(title=title, key=key, headers=util.filter_headers())
 	if not res_api.ok:
 		print 'WARNING: Unable to post user key to gitlab: status=%s, key=%s %s' % (res_api.status_code, title, key)

@@ -122,7 +122,7 @@ class ResponseForbidden(APIResponse):
 def response(user, res=None, status=None, body='', headers=None):
 	assert res is not None or status is not None, 'response: error: invalid parameters'
 	hdrs = { 'Cache-Control': 'no-cache' }
-	if res:
+	if res is not None:
 		exclude_headers = [ 'status' ]
 		status_line = '%i %s' % (res.status_code, res.reason or res.raw.reason)
 		hdrs.update([ (k, v) for (k,v) in res.headers.iteritems() if k.lower() not in exclude_headers ])

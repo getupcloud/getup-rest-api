@@ -24,5 +24,5 @@ def post():
 		else:
 			res = prov.del_key(name=event['title'])
 	else:
-		return response(None, status=http.HTTP_OK)
+		return response(user=None, status=http.HTTP_OK)
 	return response(user, res)
