@@ -143,14 +143,6 @@ def handle_user(keyid=None):
 	'''User profile
 	'''
 	return _method(api.user, path=bottle.request.path)
-	'''
-	if bottle.request.method == 'POST':
-		return _method(api.user.keys, path=bottle.request.path)
-	elif bottle.request.method == 'DELETE':
-		return _method(api.user.keys, keyid=keyid, path=bottle.request.path)
-	else:
-		return _method(api.user, path=bottle.request.path)
-	'''
 #
 # Gitlab passthru
 #
