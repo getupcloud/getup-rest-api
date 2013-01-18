@@ -3,7 +3,7 @@
 import bottle
 import json
 from getup import aaa, codec, provider, http
-from getup import database, gitlab, util
+from getup import database, gitlab, util, hooks
 from getup.response import response
 
 def post():
