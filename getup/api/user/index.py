@@ -28,6 +28,6 @@ def delete(user, api, path):
 	return _data_request(user, api(path).DELETE)
 
 def _data_request(user, method):
-	res = method(data=bottle.request.body.read() or '', headers=util.filter_headers(), cookies=bottle.request.cookies)
+	res = method(data=bottle.request.body.read(-1), headers=util.filter_headers(), cookies=bottle.request.cookies)
 	return response(user, res)
 
