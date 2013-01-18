@@ -30,7 +30,7 @@ def put(user, prov):
 @aaa.authoritative_user
 @provider.provider
 @gitlab.api
-def delete(user, prov, api, name):
+def delete(user, prov, api, name, path):
 	# first delete gitlab's key
 	key = database.keys(user, name=name)
 	print key
