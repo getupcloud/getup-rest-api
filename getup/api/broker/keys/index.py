@@ -5,6 +5,7 @@ from getup import aaa, provider, gitlab, util
 from getup.response import response
 
 @aaa.authoritative_user
+@provider.provider
 @gitlab.api
 def post(user, prov, api, path):
 	# post key to openshift
@@ -20,17 +21,6 @@ def post(user, prov, api, path):
 
 	# return openshift status only
 	return response(user, res)
-
-'''
-	res = prov.add_key(**bottle.request.forms)
-	if res.ok:
-		title = bottle.request.params.name,
-		key = '%s %s %s' % (bottle.request.params.type, bottle.request.params.content, user.email),
-		api_res = api.add_key(title=title, key=key, headers=util.filter_headers(), cookies=cookies)
-		if not api_res.ok:
-			print 'WARNING: Unable to post user key to gitlab: status=%s, key=%s' % (api_res.status_code, body)
-	return response(user, res)
-'''
 
 @aaa.authoritative_user
 @provider.provider
