@@ -30,9 +30,9 @@ def put(user, prov):
 @aaa.authoritative_user
 @provider.provider
 @gitlab.api
-def delete(user, prov, api, name, path):
+def delete(user, prov, api, keyname, path):
 	# first delete gitlab's key
-	key = database.keys(user, name=name)
+	key = database.keys(user, title=keyname)
 	print key
 	return 'OK\n'
 	# then openshit's key

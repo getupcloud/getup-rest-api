@@ -110,14 +110,14 @@ def handle_events_cart(**kvargs):
 
 @bottle.route('/broker/rest/user/keys',          method=ALL_METHODS)
 @bottle.route('/broker/rest/user/keys/',         method=ALL_METHODS)
-@bottle.route('/broker/rest/user/keys/<name>',   method=ALL_METHODS)
-@bottle.route('/broker/rest/user/keys/<name>/',  method=ALL_METHODS)
+@bottle.route('/broker/rest/user/keys/<keyname>',   method=ALL_METHODS)
+@bottle.route('/broker/rest/user/keys/<keyname>/',  method=ALL_METHODS)
 @aaa.valid_user
 def handle_broker_keys(name=None):
 	if bottle.request.method == 'POST':
 		return _method(api.broker.keys, path=bottle.request.path)
 	elif bottle.request.method in [ 'PUT', 'DELETE' ]:
-		return _method(api.broker.keys, name=name, path=bottle.request.path)
+		return _method(api.broker.keys, keyname=keyname, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
 
