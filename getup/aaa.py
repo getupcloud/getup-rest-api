@@ -56,7 +56,7 @@ def valid_user(wrapped):
 
 def authoritative_user(wrapped):
 	def wrapper(name=None, *vargs, **kvargs):
-		if not name:
+		if name is None:
 			name = app.config.user.email
 		if name != app.config.user.email and name != app.config.user.id:
 			if not app.config.user.admin:
@@ -65,6 +65,8 @@ def authoritative_user(wrapped):
 				user = database.user(id=int(name))
 			except ValueError:
 				user = database.user(email=name)
+			if not user:
+				raise response.ResponseForbidden()
 		else:
 			user = app.config.user
 		return wrapped(user=user, *vargs, **kvargs)
