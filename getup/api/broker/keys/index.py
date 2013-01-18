@@ -34,10 +34,10 @@ def delete(user, prov, api, keyname, path):
 	# first delete gitlab's key
 	keys = database.keys(user, title=keyname)
 	if keys:
-		key = keys[0]
-		res_api = api.del_key(key['id'], headers=util.filter_headers())
-		if not res_api.ok:
-			print 'WARNING: Unable to delete user key from gitlab: status=%s, key[%i]=%s %s' % (res_api.status_code, key['id'], key['title'], key['key'])
+		for key in keys:
+			res = api.del_key(key['id'], headers=util.filter_headers())
+			if not res.ok:
+				print 'WARNING: Unable to delete user key from gitlab: status=%s, key[%i]=%s %s' % (res.status_code, key['id'], key['title'], key['key'])
 
 	# then openshit's key
 	return _data_request(user, prov(path).DELETE)
