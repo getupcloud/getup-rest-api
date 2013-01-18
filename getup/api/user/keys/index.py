@@ -5,21 +5,13 @@ from getup import aaa, codec, model, proto
 from getup import database, response, gitlab
 
 @aaa.authoritative_user
-def get(user, keyname=None, keyident=None):
-	ids = {}
-	if keyname is not None:
-		ids['title'] = keyname
-	if keyident is not None:
-		ids['identifier'] = keyident
-	keys = [ model.Key(key) for key in database.keys(user, **ids) ]
-	if ids and not keys:
-		return response.ResponseNotFound()
-	else:
-		return response.ResponseOK(model.User(user, keys=keys))
+@gitlab.api
+def post(user, api, path):
+	# dont need to post key to openshift beacuse gitlab's
+	# system hook will do it for us
+	res = api.add_key(bottle.request.body.read(-1), headers=util.filter_headers())
+	return None
 
-@aaa.authoritative_user
-@proto.content_type('application/json')
-@codec.decode(codec.json)
 def post(user, title, content, *vargs, **kvargs):
 	key = model.Key(title=title, key=content['key'])
 	ret = gitlab.Gitlab(user['authentication_token']).user.keys.POST(data=key)

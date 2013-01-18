@@ -22,10 +22,12 @@ def post(user, prov, api, path):
 	# return openshift status only
 	return response(user, res)
 
+# TODO
 @aaa.authoritative_user
 @provider.provider
 def put(user, prov):
-	return _data_request(user, prov(path).PUT)
+	raise NotImpementedError()
+	#return _data_request(user, prov(path).PUT)
 
 @aaa.authoritative_user
 @provider.provider
@@ -43,6 +45,6 @@ def delete(user, prov, api, keyname, path):
 	return _data_request(user, prov(path).DELETE)
 
 def _data_request(user, method, body=None):
-	res = method(data=body or bottle.request.body.read(), headers=util.filter_headers(), cookies=bottle.request.cookies)
+	res = method(data=body or bottle.request.body.read(-1), headers=util.filter_headers(), cookies=bottle.request.cookies)
 	return response(user, res)
 

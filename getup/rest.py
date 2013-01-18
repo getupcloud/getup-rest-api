@@ -127,22 +127,34 @@ def handle_broker_keys(keyname=None):
 @bottle.route('/broker/rest/<path:path>')
 @aaa.valid_user
 def handle_broker(path=None):
-	return _method(api.broker, path=path)
+	return _method(api.broker, path=bottle.request.path)
 
 #
 # Single user
 #
-@bottle.route('/api/v2/user',             method=ALL_METHODS)
-@bottle.route('/api/v2/user/',            method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys/',       method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys',        method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys/<key>',  method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys/<key>/', method=ALL_METHODS)
+@bottle.route('/api/v2/user',               method=ALL_METHODS)
+@bottle.route('/api/v2/user/',              method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys/',         method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys',          method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys/<keyid>',  method=ALL_METHODS)
+@bottle.route('/api/v2/user/keys/<keyid>/', method=ALL_METHODS)
 @aaa.valid_user
-def handle_user(key=None):
+def handle_user(keyid=None):
 	'''User profile
 	'''
 	return _method(api.user, path=bottle.request.path)
+	'''
+	if bottle.request.method == 'POST':
+		return _method(api.user.keys, path=bottle.request.path)
+	elif bottle.request.method == 'DELETE':
+		return _method(api.user.keys, keyid=keyid, path=bottle.request.path)
+	else:
+		return _method(api.user, path=bottle.request.path)
+	'''
+#
+# Gitlab passthru
+#
+# TODO
 
 #
 # Users admin
