@@ -151,6 +151,7 @@ def handle_broker(path=None):
 	'''
 	return _method(api.broker, path=bottle.request.path)
 
+"""
 #
 # Gitlab projects
 #
@@ -167,6 +168,7 @@ def handle_proj(**kvargs):
 	if bottle.request.method in [ 'POST', 'DELETE' ]:
 		return _method(api.gitlab.projects, path=bottle.request.path)
 	return _method(api.gitlab, path=bottle.request.path)
+"""
 
 #
 # Gitlab current user

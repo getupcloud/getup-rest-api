@@ -50,7 +50,12 @@ def accounting(**labels):
 					'req_data': save_data,
 					'res_status': res.status_code,
 				}
-				database.accounting(user=res.user, event_name=event_name, event_value=json.dumps(event_value))
-				print 'account:', res.user.email, event_name
+				account(user=res.user, event_name=event_name, event_value=event_value)
 			return res
 	return Accounter
+
+def account(user, event_name, event_value):
+	if not isinstance(event_value, basestring):
+		event_value=json.dumps(event_value)
+	database.accounting(user=user, event_name=event_name, event_value=event_value)
+	print 'ACCOUNT:', user.email, event_name
