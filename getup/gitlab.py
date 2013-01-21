@@ -50,7 +50,7 @@ def api(wrapped):
 
 def ssh(wrapped, varname='ssh'):
 	class SSHClient:
-		def __init__(self):
+		def __init__(self, *va, **kva):
 			self.wrapped = wrapped
 			self.varname = varname
 			self.sshcli = paramiko.SSHClient()
@@ -63,7 +63,9 @@ def ssh(wrapped, varname='ssh'):
 			if 'identity_file' in conf:
 				self.params['key_filename'] = os.path.expanduser(conf['identity_file'])
 			self.sshcli.connect(compress=True, **params)
+			self.va = va
+			self.kva = kva
 		def __call__(self, *va, **kva):
 			kva[self.varname] = self.sshcli
-			return self.wrapped(*va, **kva)
+			return self.wrapped(*self.va, *va, *self.kva, **kva)
 	return SSHClient
