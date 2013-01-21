@@ -68,7 +68,7 @@ def decode(codec, varname='request_data'):
 			return self._wrapped(*vargs, **kvargs)
 	return DecodeContent
 
-def decoder(*codecs, varname='request_data'):
+def decoder(varname='request_data', *codecs):
 	'''Decorator to decode content from request.
 	Parameter "codecs" is a list of codec-objects (ex: json, urlencoded).
 	The decoded content is passed to decorated() via parameter named after 'varname'.
