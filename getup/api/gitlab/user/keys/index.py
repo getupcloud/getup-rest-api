@@ -12,17 +12,6 @@ def post(user, api, path):
 	res = api.add_key(bottle.request.body.read(-1), headers=util.filter_headers())
 	return None
 
-def post(user, title, content, *vargs, **kvargs):
-	key = model.Key(title=title, key=content['key'])
-	ret = gitlab.Gitlab(user['authentication_token']).user.keys.POST(data=key)
-	if ret.status_code != 201:
-		return response.ResponseBadRequest()
-	try:
-		key = [ model.Key(k) for k in database.keys(user, key=key.key) ]
-	except:
-		pass
-	return response.ResponseCreated(key)
-
 @aaa.authoritative_user
 def delete(user, keyname, keyident=None):
 	ids = { 'title': keyname }

@@ -32,8 +32,11 @@ def post(user, prov, api, ssh):
 	values = dict(project=project.replace('/', ''), **app)
 	# TODO: parametrize paths and remote name
 	cmd = '''
+	set -xe
 	cd /home/git/repositories/%(project)s.git
 	git remote add app '%(git_url)s' || git remote set-url app '%(git_url)s'
+	git remote set-head app master
+	git pull app master
 	'''  % values
 
 	ret = ssh.run(cmd)

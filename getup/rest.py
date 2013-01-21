@@ -75,7 +75,10 @@ def handle_app(**kvargs):
 	'''Broker application administration.
 	Account for creating/deleting applications.
 	'''
-	return _method(api.broker, path=bottle.request.path)
+	if bottle.request.method == 'POST':
+		return _method(api.broker.app, path=bottle.request.path)
+	else:
+		return _method(api.broker, path=bottle.request.path)
 
 def account_events(res):
 	'''Callback for hook.accounting of relevant events only.

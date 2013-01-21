@@ -25,6 +25,7 @@ webgit = dict(
 	token_header  = 'Private-Token',
 	git_user      = 'gitlab',
 	identity_file = '~/.ssh/id_dsa',
+	pubkey_file   = '~/.ssh/id_dsa.pub',
 )
 
 provider = dict(
