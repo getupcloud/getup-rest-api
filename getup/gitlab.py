@@ -1,7 +1,7 @@
 import bottle
 from hammock import Hammock
 from functools import wraps
-import paramiko
+from openssh_wrapper import SSHConnection
 import json, os
 
 app = bottle.app()
@@ -48,24 +48,21 @@ def api(wrapped):
 		return wrapped(user=user, api=Gitlab(), *vargs, **kvargs)
 	return wrapper
 
-def ssh(wrapped, varname='ssh'):
-	class SSHClient:
-		def __init__(self):
-			self.wrapped = wrapped
-			self.varname = varname
-			self.sshcli = paramiko.SSHClient()
-			self.sshcli.load_system_host_keys()
-			conf = app.config.webgit
-			params = {
-				'hostname': conf['hostname'],
-				'username': conf['git_user'],
-			}
-			if 'identity_file' in conf:
-				params['key_filename'] = os.path.expanduser(conf['identity_file'])
-			print 'ssh connecting:', params
-			self.sshcli.connect(compress=True, **params)
-			print 'ssh connected:', params
-		def __call__(self, *va, **kva):
-			kva[self.varname] = self.sshcli
-			return self.wrapped(*va, **kva)
-	return SSHClient()
+def ssh(wrapped):
+	def wrapper(*va, **kva):
+		conf = app.config.webgit
+		params = {
+			'server': conf['hostname'],
+			'login':  conf['git_user'],
+		}
+		if 'port' in conf:
+			params['port'] = conf['port']
+		if 'identity_file' in conf:
+			params['key_filename'] = os.path.expanduser(conf['identity_file'])
+
+		conn = SSHConnection(**params)
+		kva['ssh'] = conn
+		ret = wrapped(*va, **kva)
+		return ret
+	return wrapper
+

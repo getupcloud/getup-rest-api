@@ -9,7 +9,6 @@ from getup.response import response
 @gitlab.api
 @gitlab.ssh
 def post(user, prov, api, ssh):
-	print 'IN', ssh
 	try:
 		params = bottle.request.params
 		domain, name, project = params['domain'], params['name'], params['project']
@@ -18,8 +17,7 @@ def post(user, prov, api, ssh):
 	res = prov.get_app(domain=params['domain'], name=params['name'])
 	data = res.json['data']
 	gear = data['git_url']
-	stdin, stdout, stderr = ssh.exec_command('cd /tmp')
-	print [ '> %s' % l for l in stdout.readlines() ]
-	stdin, stdout, stderr = ssh.exec_command('ls -la')
-	print [ '> %s' % l for l in stdout.readlines() ]
-	return gear
+
+	ret = ssh.run('hostname && id; echo "%s"' % gear)
+	print '> ', ret
+	return 'OK'

@@ -7,4 +7,4 @@ hammock==0.2.0
 path.py==2.4.1
 requests==0.14.2
 httpagentparser==1.2.1
-paramiko==1.9.0
+openssh-wrapper==0.3.2
