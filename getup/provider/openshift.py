@@ -21,11 +21,14 @@ class OpenShift(Provider):
 	def __call__(self, path):
 		return self.api(path if path else '')
 
+	def get_app(self, domain, name, **kvargs):
+		return self.api.broker.rest.domains(domain).applications(name).GET(**kvargs)
+
 	def add_key(self, name, type, content, **kvargs):
-		return self.api('/broker/rest/user/keys').POST(data={'name': name, 'type': type, 'content': content}, **kvargs)
+		return self.api.broker.rest.user.keys.POST(data={'name': name, 'type': type, 'content': content}, **kvargs)
 
 	def del_key(self, name, **kvargs):
-		return self.api('/broker/rest/user/keys/%s' % name).DELETE(**kvargs)
+		return self.api.broker.rest.user.keys(name).DELETE(**kvargs)
 
 """
 	#
