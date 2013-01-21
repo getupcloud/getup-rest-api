@@ -1,19 +1,20 @@
 import bottle
 from hammock import Hammock
 from functools import wraps
-import json
+import paramiko
+import json, os
 
 app = bottle.app()
 
 def user(userid=None, token=None):
 	hdr = { app.config.webgit['token_header']: token or app.config.user.authentication_token }
-	users = Hammock(app.config.webgit['base_url'], headers=hdr).users
+	users = Hammock('http://' + app.config.webgit['hostname'], headers=hdr).users
 	if userid:
 		u = users.GET(userid).json
 		u['keys'] = user.keys.GET().json
 		return [ u ]
 	else:
-		users = Hammock(app.config.webgit['base_url'], headers=hdr).users
+		users = Hammock('http://' + app.config.webgit['base_url'], headers=hdr).users
 	return users.GET().json
 
 class Gitlab:
@@ -22,7 +23,7 @@ class Gitlab:
 			app.config.webgit['token_header']: app.config.user['authentication_token'],
 			'Content-Type': 'application/json',
 		}
-		self.api = Hammock(app.config.webgit['base_url'].rstrip('/'), headers=self.headers)
+		self.api = Hammock('http://' + app.config.webgit['base_url'].rstrip('/'), headers=self.headers)
 
 	def __getattr__(self, name):
 		return getattr(self.api, name)
@@ -46,3 +47,23 @@ def api(wrapped):
 	def wrapper(user, *vargs, **kvargs):
 		return wrapped(user=user, api=Gitlab(), *vargs, **kvargs)
 	return wrapper
+
+def ssh(wrapped, varname='ssh'):
+	class SSHClient:
+		def __init__(self):
+			self.wrapped = wrapped
+			self.varname = varname
+			self.sshcli = paramiko.SSHClient()
+			self.sshcli.load_system_host_keys()
+			conf = app.config.webgit
+			self.params = {
+				hostname=conf['hostname'],
+				username=conf['git_user'],
+			}
+			if 'identity_file' in conf:
+				self.params['key_filename'] = os.path.expanduser(conf['identity_file'])
+			self.sshcli.connect(compress=True, **params)
+		def __call__(self, *va, **kva):
+			kva[self.varname] = self.sshcli
+			return self.wrapped(*va, **kva)
+	return SSHClient

@@ -21,12 +21,14 @@ database = dict(
 )
 
 webgit = dict(
-	base_url     = 'http://git.getupcloud.com',
-	token_header = 'Private-Token',
+	hostname      = 'git.getupcloud.com',
+	token_header  = 'Private-Token',
+	git_user      = 'gitlab',
+	identity_file = '~/.ssh/id_dsa',
 )
 
 provider = dict(
 	openshift = dict(
-		base_url = 'https://broker.getupcloud.com',
+		hostname = 'broker.getupcloud.com',
 	),
 )
