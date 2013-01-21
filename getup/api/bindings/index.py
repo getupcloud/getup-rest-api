@@ -19,7 +19,7 @@ def post(user, prov, api, ssh):
 	gear = data['git_url']
 	repo = api.get_project(name)
 
-	cmd = "cd /home/git/repositories/%s.git && git remote -v" % name
+	cmd = "cd /home/git/repositories/%s.git && git remote -v" % project
 	ret = ssh.run(cmd)
 	print '>' * 30
 	print ret
