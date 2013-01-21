@@ -22,7 +22,7 @@ def post(user, prov, api, ssh):
 	app = res.json['data']
 
 	# retrieve gitlab project
-	res = api.get_project(name)
+	res = api.get_project(project)
 	if not res.ok:
 		return response(user, res)
 	proj = res.json
