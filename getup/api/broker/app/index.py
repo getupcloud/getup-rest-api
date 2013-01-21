@@ -14,8 +14,10 @@ def post(user, prov, path):
 
 	# register gitlab pubkey into openshift application
 	with open(os.path.expanduser(app.config.webgit['pubkey_file'])) as pubkey:
-		key = dict(zip(['type', 'content', 'name'], map(urllib.quote, pubkey.readline().split())))
-	if not prov.broker.rest.user.keys.POST(data=key).ok:
-		print 'error registering gitlab public key:', key
+		key = dict(zip(['type', 'content', 'name'], pubkey.readline().split()))
+		key['content'] = urllib.quote(key['content'])
+	r = prov.broker.rest.user.keys.POST(data=key)
+	if not r.ok:
+		print 'error registering gitlab public key: %s - %s' % (r, key)
 
 	return response(user, res)

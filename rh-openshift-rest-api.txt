@@ -22,7 +22,7 @@ POST   /broker/rest/domains/[Domain_ID]/applications name=[App_Name] cartridge=[
 GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]
 POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events event=[start|stop|force-stop|restart|show-port|expose-port|conceal-port|scale-up|scale-down]
 POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events event=[add-alias|remove-alias] alias=[Alias_Name]
-DELETE /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events
+DELETE /broker/rest/domains/[Domain_ID]/applications/[App_Name]
 GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/events/descriptor
 GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/gears
 
