@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, urllib
+import os
 import bottle
 from getup import aaa, provider
 from getup.response import response
@@ -14,8 +14,7 @@ def post(user, prov, path):
 
 	# register gitlab pubkey into openshift application
 	with open(os.path.expanduser(app.config.webgit['pubkey_file'])) as pubkey:
-		key = dict(zip(['type', 'content', 'name'], pubkey.readline().split()))
-		key['content'] = urllib.quote(key['content'])
+		key = dict(zip(['type', 'content'], pubkey.readline().split()))
 		key['name'] = 'getupcloud'
 	r = prov.broker.rest.user.keys.POST(data=key)
 	if not r.ok:
