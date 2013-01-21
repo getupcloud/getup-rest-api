@@ -33,7 +33,7 @@ def post(user, prov, api, ssh):
 	# TODO: parametrize paths and remote name
 	cmd = '''
 	set -xe
-	TMP_REPO=`mktemp`
+	TMP_REPO=`mktemp -d`
 	cd $TMP_REPO
 	git clone $(git_url)s %(project)s
 	cd %(project)s
