@@ -66,7 +66,9 @@ def ssh(wrapped, varname='ssh'):
 			self.sshcli.connect(compress=True, **params)
 			self.va = va
 			self.kva = kva
-		def __call__(self):
+		def __call__(self, *va, **kvar):
+			va.append(self.va)
+			kva.update(self.kva)
 			kva[self.varname] = self.sshcli
-			return self.wrapped(*self.va, **self.kva)
+			return self.wrapped(*va, **kva)
 	return SSHClient
