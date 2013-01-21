@@ -58,15 +58,15 @@ def ssh(wrapped, varname='ssh'):
 			self.sshcli.load_system_host_keys()
 			conf = app.config.webgit
 			self.params = {
-				hostname: conf['hostname'],
-				username: conf['git_user'],
+				'hostname': conf['hostname'],
+				'username': conf['git_user'],
 			}
 			if 'identity_file' in conf:
 				self.params['key_filename'] = os.path.expanduser(conf['identity_file'])
 			self.sshcli.connect(compress=True, **params)
 			self.va = va
 			self.kva = kva
-		def __call__(self, *va, **kva):
+		def __call__(self):
 			kva[self.varname] = self.sshcli
-			return self.wrapped(*va, **kva)
+			return self.wrapped(*self.va, **self.kva)
 	return SSHClient
