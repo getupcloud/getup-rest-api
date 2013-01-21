@@ -51,6 +51,7 @@ def api(wrapped):
 def ssh(wrapped, varname='ssh'):
 	class SSHClient:
 		def __init__(self, *va, **kva):
+			print va, kva
 			self.wrapped = wrapped
 			self.varname = varname
 			self.sshcli = paramiko.SSHClient()
@@ -65,7 +66,6 @@ def ssh(wrapped, varname='ssh'):
 			self.sshcli.connect(compress=True, **params)
 			self.va = va
 			self.kva = kva
-			print va, kva
 		def __call__(self, *va, **kva):
 			kva[self.varname] = self.sshcli
 			return self.wrapped(*va, **kva)
