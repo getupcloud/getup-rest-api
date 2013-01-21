@@ -25,6 +25,6 @@ def post(user, prov, api, ssh):
 	print ret
 	print '<' * 30
 	if ret.returncode != 0:
-		return 'ERROR: %s' ret.stderr
+		return 'ERROR: %s' % ret.stderr
 	else:
 		return 'OK'
