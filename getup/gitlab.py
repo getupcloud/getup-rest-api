@@ -31,7 +31,7 @@ class Gitlab:
 	def get_project(self, name=None, **kvargs):
 		if name:
 			return self.api.api.v2.projects(name).GET(**kvargs)
-		else
+		else:
 			return self.api.api.v2.projects.GET()
 
 	def add_key(self, title, key, headers=None, **kvargs):
