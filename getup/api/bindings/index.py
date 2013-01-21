@@ -33,11 +33,17 @@ def post(user, prov, api, ssh):
 	# TODO: parametrize paths and remote name
 	cmd = '''
 	set -xe
+	TMP_REPO=`mktemp`
+	cd $TMP_REPO
+	git clone $(git_url)s %(project)s
+	cd %(project)s
+	git push git@git.getupcloud.com:%(project)s.git master; STATUS=$?
+	rm -rf "$TMP_REPO"
+	[ "$STATUS" -eq 0 ] || exit 1
 	cd /home/git/repositories/%(project)s.git
 	git remote add app '%(git_url)s' || git remote set-url app '%(git_url)s'
-	git remote set-head app master
-	git pull app master
-	'''  % values
+	git fetch app master
+	''' % values
 
 	ret = ssh.run(cmd)
 
