@@ -236,6 +236,16 @@ def handle_gitlab_hook():
 	return _method(api.gitlab.hook)
 
 #
+# Binding Project <-> App
+#
+@bottle.route('/bindings', method=ALL_METHODS)
+@aaa.valid_user
+def handle_targets():
+	'''
+	'''
+	return _method(api.bindings)
+
+#
 # Health check
 #
 @bottle.get('/health_check')
