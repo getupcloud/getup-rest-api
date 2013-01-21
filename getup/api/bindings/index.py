@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import bottle
 from getup import aaa, provider, codec, gitlab
 from getup.response import response
-
-def get():
-	return response.ResponseOK()
 
 @aaa.authoritative_user
 @provider.provider
