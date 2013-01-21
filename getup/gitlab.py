@@ -62,6 +62,7 @@ def ssh(wrapped, varname='ssh'):
 			}
 			if 'identity_file' in conf:
 				params['key_filename'] = os.path.expanduser(conf['identity_file'])
+			print 'ssh connecting:', params
 			self.sshcli.connect(compress=True, **params)
 			print 'ssh connected:', params
 		def __call__(self, *va, **kva):
