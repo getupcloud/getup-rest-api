@@ -35,7 +35,7 @@ def post(user, prov, api, ssh):
 	set -xe
 	TMP_REPO=`mktemp -d`
 	cd $TMP_REPO
-	git clone $(git_url)s %(project)s
+	git clone %(git_url)s %(project)s
 	cd %(project)s
 	git push git@git.getupcloud.com:%(project)s.git master; STATUS=$?
 	rm -rf "$TMP_REPO"
