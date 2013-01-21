@@ -57,12 +57,12 @@ def ssh(wrapped, varname='ssh'):
 			self.sshcli = paramiko.SSHClient()
 			self.sshcli.load_system_host_keys()
 			conf = app.config.webgit
-			self.params = {
+			params = {
 				'hostname': conf['hostname'],
 				'username': conf['git_user'],
 			}
 			if 'identity_file' in conf:
-				self.params['key_filename'] = os.path.expanduser(conf['identity_file'])
+				params['key_filename'] = os.path.expanduser(conf['identity_file'])
 			self.sshcli.connect(compress=True, **params)
 			self.va = va
 			self.kva = kva
