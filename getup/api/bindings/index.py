@@ -17,7 +17,11 @@ def post(user, prov, api, ssh):
 	res = prov.get_app(domain=params['domain'], name=params['name'])
 	data = res.json['data']
 	gear = data['git_url']
+	repo = api.get_project(name)
 
-	ret = ssh.run('hostname && id; echo "%s"' % gear)
-	print '> ', ret
+	cmd = "cd /home/git/repositories/%s.git && git remote -v" % name
+	ret = ssh.run(cmd)
+	print '>' * 30
+	print ret
+	print '<' * 30
 	return 'OK'

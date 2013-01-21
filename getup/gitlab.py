@@ -28,6 +28,12 @@ class Gitlab:
 	def __getattr__(self, name):
 		return getattr(self.api, name)
 
+	def get_project(self, name=None, **kvargs):
+		if name:
+			return self.api.api.v2.projects(name).GET(**kvargs)
+		else
+			return self.api.api.v2.projects.GET()
+
 	def add_key(self, title, key, headers=None, **kvargs):
 		hdrs = self.headers
 		if headers:
