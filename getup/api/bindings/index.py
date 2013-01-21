@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from getup import aaa, provider, codec
+from getup import aaa, provider, codec, gitlab
 from getup.response import response
 
 def get():
