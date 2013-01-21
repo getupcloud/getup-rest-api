@@ -19,6 +19,6 @@ def post(user, prov, path):
 		key['name'] = 'getupcloud'
 	r = prov.broker.rest.user.keys.POST(data=key)
 	if not r.ok:
-		print 'error registering gitlab public key: %s - %s' % (r, key)
+		print 'error registering gitlab public key: %s - %s - \n%s' % (r, r.request.body, r.request.headers)
 
 	return response(user, res)
