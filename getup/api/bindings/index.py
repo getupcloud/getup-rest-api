@@ -9,6 +9,7 @@ from getup.response import response
 @gitlab.api
 @gitlab.ssh
 def post(user, prov, api, ssh):
+	print 'IN', ssh
 	try:
 		params = bottle.request.params
 		domain, name, project = params['domain'], params['name'], params['project']
