@@ -29,7 +29,7 @@ def post(user, prov, api, ssh):
 
 	# add git remote 'app' to project repository
 	# poiting to openshift gear repository.
-	values = dict(project=project.replace('/', ''), **data)
+	values = dict(project=project.replace('/', ''), **app)
 	# TODO: parametrize paths and remote name
 	cmd = '''
 	cd /home/git/repositories/%(project)s.git
