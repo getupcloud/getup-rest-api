@@ -14,7 +14,7 @@ def user(userid=None, token=None):
 		u['keys'] = user.keys.GET().json
 		return [ u ]
 	else:
-		users = Hammock('http://' + app.config.webgit['base_url'], headers=hdr).users
+		users = Hammock('http://' + app.config.webgit['hostname'], headers=hdr).users
 	return users.GET().json
 
 class Gitlab:
@@ -23,7 +23,7 @@ class Gitlab:
 			app.config.webgit['token_header']: app.config.user['authentication_token'],
 			'Content-Type': 'application/json',
 		}
-		self.api = Hammock('http://' + app.config.webgit['base_url'].rstrip('/'), headers=self.headers)
+		self.api = Hammock('http://' + app.config.webgit['hostname'].rstrip('/'), headers=self.headers)
 
 	def __getattr__(self, name):
 		return getattr(self.api, name)
