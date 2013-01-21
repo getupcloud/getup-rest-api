@@ -33,6 +33,8 @@ def put(user, prov):
 @provider.provider
 @gitlab.api
 def delete(user, prov, api, keyname, path):
+	if keyname == 'getupcloud':
+		return response(user, status=http.HTTP_FORBIDDEN)
 	# first delete gitlab's key
 	keys = database.keys(user, title=keyname)
 	if keys:
