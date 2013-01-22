@@ -41,8 +41,8 @@ def post(user, prov, api, ssh):
 	rm -rf "$TMP_REPO"
 	[ "$STATUS" -eq 0 ] || exit 1
 	cd /home/git/repositories/%(project)s.git
-	git remote add app '%(git_url)s' || git remote set-url app '%(git_url)s'
-	git fetch app master
+	git remote add app-%(project)s'%(git_url)s' || git remote set-url app-%(project)s '%(git_url)s'
+	git fetch app-%(project)s master
 	''' % values
 
 	ret = ssh.run(cmd)
