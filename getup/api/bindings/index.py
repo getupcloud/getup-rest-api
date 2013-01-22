@@ -28,21 +28,24 @@ def post(user, prov, api, ssh):
 	proj = res.json
 
 	# add git remote 'app' to project repository
-	# poiting to openshift gear repository.
+	# pointing to openshift gear repository.
 	values = dict(project=project.replace('/', ''), **app)
+	values['remote'] = remote='%(project)s@%(name)s-%(domain)s' % values
 	# TODO: parametrize paths and remote name
 	cmd = '''
 	set -xe
 	TMP_REPO=`mktemp -d`
 	cd $TMP_REPO
-	git clone %(git_url)s %(project)s
-	cd %(project)s
-	git push git@git.getupcloud.com:%(project)s.git master; STATUS=$?
+	{
+		git clone %(git_url)s %(project)s &&
+		cd %(project)s &&
+		git push git@git.getupcloud.com:%(project)s.git master
+	} && STATUS=$? || STATUS=$?
 	rm -rf "$TMP_REPO"
 	[ "$STATUS" -eq 0 ] || exit 1
 	cd /home/git/repositories/%(project)s.git
-	git remote add app-%(project)s '%(git_url)s' || git remote set-url app-%(project)s '%(git_url)s'
-	git fetch app-%(project)s master
+	git remote add %(remote)s '%(git_url)s' || git remote set-url %(remote)s '%(git_url)s'
+	git fetch %(remote)s master
 	''' % values
 
 	ret = ssh.run(cmd)
