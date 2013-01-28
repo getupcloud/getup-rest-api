@@ -55,10 +55,8 @@ def handle_status():
 @bottle.route('/broker/rest/domains/<domain>',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/', method=ALL_METHODS)
 @aaa.valid_user
-@hooks.accounting(POST='create_domain', DELETE='delete_domain')
 def handle_domains(**kvargs):
 	'''Broker domain administration.
-	Account for creating/deleting domains.
 	'''
 	return _method(api.broker, path=bottle.request.path)
 
@@ -70,28 +68,19 @@ def handle_domains(**kvargs):
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/', method=ALL_METHODS)
 @aaa.valid_user
-@hooks.accounting(POST='create_app', DELETE='delete_app')
 def handle_app(**kvargs):
 	'''Broker application administration.
-	Account for creating/deleting applications.
 	'''
 	if bottle.request.method == 'POST':
 		return _method(api.broker.app, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
 
-def account_events(res):
-	'''Callback for hook.accounting of relevant events only.
-	'''
-	return bottle.request.params.event in [ 'start', 'stop', 'force-stop', 'scale-up', 'scale-down' ]
-
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/events',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/events/', method=ALL_METHODS)
 @aaa.valid_user
-@hooks.accounting(POST=('events_app', account_events))
 def handle_events_app(**kvargs):
 	'''Broker application events.
-	Account for relevante events only (ex: scale-up/scale-down).
 	'''
 	return _method(api.broker, path=bottle.request.path)
 
@@ -103,25 +92,16 @@ def handle_events_app(**kvargs):
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/', method=ALL_METHODS)
 @aaa.valid_user
-@hooks.accounting(POST='create_cart', DELETE='delete_cart')
 def handle_cart(**kvargs):
 	'''Broker cartridge administration.
-	Account for creating/deleting cartridges.
 	'''
 	return _method(api.broker, path=bottle.request.path)
-
-def account_cartridges(res):
-	'''Callback for hook.accounting of relevant events only.
-	'''
-	return bottle.request.params.event in [ 'start', 'stop' ]
 
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events/', method=ALL_METHODS)
 @aaa.valid_user
-@hooks.accounting(POST=('events_cart', account_cartridges))
 def handle_events_cart(**kvargs):
 	'''Broker cartridge events.
-	Account for relevante events only (ex: start/stop).
 	'''
 	return _method(api.broker, path=bottle.request.path)
 
@@ -154,25 +134,6 @@ def handle_broker(path=None):
 	'''
 	return _method(api.broker, path=bottle.request.path)
 
-"""
-#
-# Gitlab projects
-#
-@bottle.route('/api/v2/projects',            method=ALL_METHODS)
-@bottle.route('/api/v2/projects/',           method=ALL_METHODS)
-@bottle.route('/api/v2/projects/<project>',  method=ALL_METHODS)
-@bottle.route('/api/v2/projects/<project>/', method=ALL_METHODS)
-@aaa.valid_user
-@hooks.accounting(POST='create_proj', DELETE='delete_proj')
-def handle_proj(**kvargs):
-	'''Gitlab project administration.
-	Account for creating/deleting projects.
-	'''
-	if bottle.request.method in [ 'POST', 'DELETE' ]:
-		return _method(api.gitlab.projects, path=bottle.request.path)
-	return _method(api.gitlab, path=bottle.request.path)
-"""
-
 #
 # Gitlab current user
 #
@@ -195,16 +156,9 @@ def handle_user(keyid=None):
 #
 # Gitlab users admin
 #
-def account_users_filter(res):
-	'''Callback for hooks.accouting to prevent saving any sensitive data to DB
-	'''
-	content = dict(filter(lambda (k,n): k != 'password', bottle.request.json.iteritems()))
-	return content
-
 @bottle.route('/api/v2/users',  method=ALL_METHODS)
 @bottle.route('/api/v2/users/', method=ALL_METHODS)
 @aaa.admin_user
-@hooks.accounting(POST=('create_user', None, account_users_filter), DELETE='delete_user')
 def handle_current_user():
 	'''Gitlab current user administration
 	'''
@@ -247,6 +201,23 @@ def handle_targets():
 	'''
 	'''
 	return _method(api.bindings)
+
+#
+# Accouting
+#
+@bottle.post('/accounting/<username>')
+@aaa.admin_user
+def handle_accounting(username):
+	'''Accouting created gear.
+	'''
+	return _method(api.acct, username=username)
+
+@bottle.delete('/accounting/<username>/<appname>')
+@aaa.admin_user
+def handle_accounting(username, appname):
+	'''Accouting deleted gear.
+	'''
+	return _method(api.acct, username=username, appname=appname)
 
 #
 # Health check

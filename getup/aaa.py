@@ -61,20 +61,20 @@ def valid_user(wrapped):
 
 def authoritative_user(wrapped):
 	'''Decorator to query and validate an authenticated user.
-	It receives the username as parameters "name" and passes the user
+	It receives the username as parameter "username" and passes the user
 	record from database as parameters "user" to wrapped function.
 	Admin users can query any user.
 	'''
-	def wrapper(name=None, *vargs, **kvargs):
-		if name is None:
-			name = app.config.user.email
-		if name != app.config.user.email and name != app.config.user.id:
+	def wrapper(username=None, *vargs, **kvargs):
+		if username is None:
+			username = app.config.user.email
+		if username != app.config.user.email and username != app.config.user.id:
 			if not app.config.user.admin:
 				raise response.ResponseForbidden()
 			try:
-				user = database.user(id=int(name))
+				user = database.user(id=int(username))
 			except ValueError:
-				user = database.user(email=name)
+				user = database.user(email=username)
 			if not user:
 				raise response.ResponseForbidden()
 		else:
@@ -167,9 +167,15 @@ def accounting(**labels):
 			return res
 	return Accounter
 
-def account(user, event_name, event_value):
-	'''Register an accountin event
+def account(user, event, value):
+	'''Register accounting event
 	'''
-	if not isinstance(event_value, basestring):
-		event_value=json.dumps(event_value)
-	database.accounting(user=user, event_name=event_name, event_value=event_value)
+	if not isinstance(value, basestring):
+		value=json.dumps(value)
+	database.accounting(user=user, event_name=event, event_value=value)
+
+def create_gear(user, gear_name):
+	return account(user, event='create-gear', value={'name':gear_name})
+
+def delete_gear(user, gear_name):
+	return account(user, event='delete-gear', value={'name':gear_name})
