@@ -4,7 +4,7 @@
 import os, sys, time, logging
 import bottle
 import config, database, http
-import hooks, aaa, api, response
+import aaa, api, response
 
 app = bottle.default_app()
 
