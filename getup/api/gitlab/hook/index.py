@@ -3,7 +3,7 @@
 import bottle
 import json
 from getup import aaa, codec, provider, http
-from getup import database, gitlab, util, hooks
+from getup import database, gitlab, util
 from getup.response import response
 
 def post():
@@ -38,7 +38,7 @@ def post():
 			'req_data': json.dumps(event),
 			'res_status': 200,
 		}
-		hooks.account(user, ev_name, ev_value)
+		aaa.account(user, ev_name, ev_value)
 
 	# unhandled hooks returns always OK
 	return response(user, status=http.HTTP_OK)
