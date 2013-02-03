@@ -28,7 +28,7 @@ import provider
 config.loadconfig(app)
 database.start(app)
 
-# reinstall better json plugin
+# install better json plugin
 bottle.uninstall(bottle.JSONPlugin)
 class ExtraJSONPlugin(bottle.JSONPlugin):
 	def __init__(self):

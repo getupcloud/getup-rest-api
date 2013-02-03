@@ -93,14 +93,3 @@ def keys(user, **where):
 
 def accounting(user, event_name, event_value):
 	Accounting.insert().values(user_id=user['id'], name=event_name, value=event_value).execute()
-
-if __name__ == '__main__':
-	import getup.config
-	getup.config.loadconfig(bottle.app())
-	#start(app)
-	#u = user('bcqvzVxP8yokasKHfP5w')
-#else:
-	#start(bottle.app())
-	# tables
-	#Users = table(bottle.app(), 'users')
-	#Keys = table(bottle.app(), 'keys')
