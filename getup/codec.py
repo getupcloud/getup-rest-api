@@ -28,7 +28,7 @@ class JsonCodec(Codec):
 		return bottle.request.json if data is None else json_loads(data)
 
 class FormURLCodec(Codec):
-	def encoode(self, **data):
+	def encode(self, **data):
 		raise NotImplemented
 
 	def decode(self, data=None):
