@@ -7,39 +7,32 @@ import json
 
 app = bottle.app()
 
+def _get_auth_token(params, headers):
+	return '', params.get('private_token', params.get('token'))
+
+def _get_auth_basic(params, headers):
+	try:
+		token = headers['Authorization']
+		auth_type, auth_token = token.split(None, 1)
+		if auth_type.lower() == 'basic':
+			return tuple(base64.decodestring(auth_token).split(':', 1)[:2])
+	except:
+		pass
+	return None, None
+
 def _auth_user():
 	#todo: secure token
-	try:
-		# ugly...
-		try:
-			kind, auth_token = 'token', bottle.request.params['token']
-		except KeyError:
-			try:
-				kind, auth_token = 'token', bottle.request.params['private_token']
-			except KeyError:
-				try:
-					kind, auth_token = bottle.request.headers['Authorization'].split(None, 1)
-				except KeyError:
-					return False
-
-		kind = kind.lower()
-		if kind == 'basic':
-			username, token = base64.decodestring(auth_token).split(':')
-		elif kind == 'token':
-			username, token = '', auth_token
-		else:
-			return False
-	except ValueError:
-		return False
-
-	user = database.user(authentication_token=token, email=username)
-	return user if user and user['authentication_token'] == token else False
+	for authenticator in [ _get_auth_token, _get_auth_basic ]:
+		username, auth_token = authenticator(bottle.request.params, bottle.request.headers)
+		if auth_token:
+			user = database.user(authentication_token=auth_token, email=username)
+			if user and user['authentication_token'] == auth_token:
+				return user
+	return False
 
 def _do_auth(predicate, response_class):
 	app.config.user = _auth_user()
-	if predicate(app.config.user):
-		return True
-	return False
+	return True if predicate(app.config.user) else False
 
 def admin_user(wrapped):
 	'''Decorator to enforce an admin user only.
