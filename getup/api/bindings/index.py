@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, provider, codec, gitlab
+from getup import aaa, provider, codec, gitlab, http
 from getup.response import response
 
 @aaa.authoritative_user
