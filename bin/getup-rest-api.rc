@@ -90,8 +90,7 @@ case "$1" in
         stop
         ;;
   restart)
-        stop
-        sleep 2
+        stop && sleep 2
         start
         ;;
   reload|force-reload)
