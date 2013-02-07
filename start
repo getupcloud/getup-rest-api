@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 . .env/bin/activate
-gunicorn $* getup:application
+sudo -u $RUN_USER -g $RUN_GROUP gunicorn $* getup:application
