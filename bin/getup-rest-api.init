@@ -13,7 +13,7 @@ export NAME="getup-rest-api"
 export RUN_USER=getup
 export RUN_GROUP=getup
 export APP_ROOT="/home/getup/getup-rest-api"
-export RUN_DIR="/var/run"
+export RUN_DIR="$APP_ROOT"
 export PID_FILE="$RUN_DIR/$NAME.pid"
 export APP_SOCKET="unix:$RUN_DIR/$NAME.sock"
 export LOG_DIR="/var/log/getup-rest-api"
@@ -39,7 +39,7 @@ start() {
     exit 1
   else
     install -d $LOG_DIR --owner=$RUN_USER --group=$RUN_GROUP --mode=770
-    sudo -u $RUN_USER -g $RUN_GROUP ./start $DAEMON_OPTS || { echo failed; exit 1; }
+    runuser -g $RUN_GROUP $RUN_USER -c "./start $DAEMON_OPTS" || { echo failed; exit 1; }
     echo "$DESC started"
   fi
 }
