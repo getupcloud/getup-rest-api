@@ -29,7 +29,7 @@ def post(domain, name, user, prov, api, ssh):
 	# add git remote 'app' to project repository
 	# pointing to openshift gear repository.
 	values = dict(
-		git_host=app.config.webgit['hostname'],
+		git_host=bottle.app().config.webgit['hostname'],
 		project=project.replace('/', '').replace('.', ''),
 		**app)
 	values['remote'] = '%(project)s@%(name)s-%(domain_id)s' % values
