@@ -28,7 +28,10 @@ def post(domain, name, user, prov, api, ssh):
 
 	# add git remote 'app' to project repository
 	# pointing to openshift gear repository.
-	values = dict(project=project.replace('/', '').replace('.', ''), **app)
+	values = dict(
+		git_host=app.config.webgit['hostname'],
+		project=project.replace('/', '').replace('.', ''),
+		**app)
 	values['remote'] = '%(project)s@%(name)s-%(domain_id)s' % values
 	# TODO: parametrize paths and remote name
 	cmd = '''
@@ -38,11 +41,11 @@ def post(domain, name, user, prov, api, ssh):
 	{
 		git clone '%(git_url)s' '%(project)s' &&
 		cd '%(project)s' &&
-		git push 'git@git.ops.getupcloud.com:%(project)s.git' master
+		git push 'git@%(git_host)s:%(project)s.git' master
 	} && STATUS=$? || STATUS=$?
 	rm -rf "$TMP_REPO"
 	[ "$STATUS" -eq 0 ] || exit $STATUS
-	cd '/home/git/repositories/%(project)s.git'
+	cd ~git/repositories/%(project)s.git
 	git remote add '%(remote)s' '%(git_url)s' || git remote set-url '%(remote)s' '%(git_url)s'
 	git fetch '%(remote)s' master
 	''' % values
