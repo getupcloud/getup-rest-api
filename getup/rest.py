@@ -185,6 +185,15 @@ def handle_user(name):
 	return _method(api.gitlab.users, name=name, path='/api/v2/users', userid=name)
 
 #
+# Gitlab user session
+#
+@bottle.route('/api/v2/session', method=ALL_METHODS)
+def handle_user(**kvargs):
+	'''Gitlab user session (auth via password, not token)
+	'''
+	return _method(api.gitlab, path=bottle.request.path)
+
+#
 # Gitlab passthru
 #
 @bottle.route('/api/v2/<path:path>', method=ALL_METHODS)
