@@ -137,21 +137,12 @@ def handle_broker_keys(keyname=None):
 #
 # Broker passthru
 #
-@bottle.route('/broker/cartlist', method=ALL_METHODS)
-@bottle.route('/broker/cartlist/', method=ALL_METHODS)
-@bottle.route('/broker/cartlist/<path:path>', method=ALL_METHODS)
-def handle_broker(path=None):
-	'''Broker everything else
-	'''
-	return _method(api.broker, path=bottle.request.path)
-
-@bottle.route('/broker/rest/<path:path>', method=ALL_METHODS)
+@bottle.route('/broker/<path:path>', method=ALL_METHODS)
 @aaa.valid_user
 def handle_broker(path=None):
 	'''Broker everything else
 	'''
 	return _method(api.broker, path=bottle.request.path)
-
 
 #
 # Gitlab current user
