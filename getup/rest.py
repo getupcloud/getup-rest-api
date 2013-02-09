@@ -80,7 +80,7 @@ def handle_domain(**kvargs):
 def handle_app(**kvargs):
 	'''Broker application administration.
 	'''
-	if bottle.request.method.upper() in [ 'POST' 'DELETE' ]:
+	if bottle.request.method.upper() in [ 'POST', 'DELETE' ]:
 		return _method(api.broker.app, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
