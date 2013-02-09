@@ -164,17 +164,19 @@ def account(user, event, value):
 	'''Register accounting event
 	'''
 	if not isinstance(value, basestring):
-		value=json.dumps(value)
+		value = json.dumps(value)
 	database.accounting(user=user, event_name=event, event_value=value)
 
 def create_app(user, app_data):
-	return account(user, event='create-app', value=app_data)
+	fields = [ 'creation_time', 'gear_count', 'embedded', 'name', 'domain_id' ]
+	data = { field:app_data for field in app_data if field in fields }
+	return account(user, event='create-app', value=data)
 
-def delete_app(user, app_data):
-	return account(user, event='delete-app', value=app_data)
+def delete_app(user, app_name):
+	return account(user, event='delete-app', value={'name': app_name})
 
-def create_gear(user, gear_name):
-	return account(user, event='create-gear', value={'name':gear_name})
+def create_gear(user, gear_data):
+	return account(user, event='create-gear', value={'name': gear_data})
 
 def delete_gear(user, gear_name):
-	return account(user, event='delete-gear', value={'name':gear_name})
+	return account(user, event='delete-gear', value={'name': gear_name})
