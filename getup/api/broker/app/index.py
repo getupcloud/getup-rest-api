@@ -12,7 +12,7 @@ app = bottle.default_app()
 def post(user, prov, path):
 	res = prov(path).POST(data=bottle.request.body, headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	if res.ok:
-		aaa.create_app(user, app_data)
+		aaa.create_app(user, res.json['data'])
 	return response(user, res)
 
 @aaa.authoritative_user
