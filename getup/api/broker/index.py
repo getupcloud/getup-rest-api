@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, provider
+from getup import aaa, provider, util
 from getup.response import response
 
 @aaa.authoritative_user
 @provider.provider
 def get(user, prov, path):
 	url = prov(path)
-	res = url.GET(headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
+	res = url.GET(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	return response(user, res)
 
 @aaa.authoritative_user

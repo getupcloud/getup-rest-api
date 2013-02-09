@@ -2,7 +2,7 @@
 
 import os
 import bottle
-from getup import aaa, provider
+from getup import aaa, provider, util
 from getup.response import response
 
 app = bottle.default_app()
