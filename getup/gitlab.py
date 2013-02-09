@@ -19,7 +19,7 @@ def user(userid=None, token=None):
 
 def session(body):
 	gitlab = Hammock('https://' + app.config.webgit['hostname'])
-	hdrs['Content-Type'] = 'application/json'
+	hdrs = {'Content-Type': 'application/json'}
 	return gitlab.api.v2.session.POST(data=body, headers=hdrs)
 
 class Gitlab:
