@@ -21,6 +21,7 @@ def post(user, prov, path):
 @provider.provider
 def delete(user, prov, path):
 	res = prov(path).DELETE(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+	print res
 	if res.ok:
 		fields = [ 'creation_time', 'gear_count', 'embeded', 'name', 'domain_id' ]
 		app_data = dict([ tuple(i, res.json['data'].get(i)) for i in fields ])
