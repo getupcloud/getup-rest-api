@@ -169,7 +169,7 @@ def account(user, event, value):
 
 def create_app(user, app_data):
 	fields = [ 'creation_time', 'gear_count', 'embedded', 'name', 'domain_id' ]
-	data = { field:app_data for field in app_data if field in fields }
+	data = { field:app_data[field] for field in app_data if field in fields }
 	return account(user, event='create-app', value=data)
 
 def delete_app(user, app_name):
