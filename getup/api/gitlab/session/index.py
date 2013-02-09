@@ -5,7 +5,6 @@ from getup import aaa, gitlab, util
 from getup import gitlab
 from getup.response import response
 
-@gitlab.api
-def post(api, path):
-	res = api(path).POST(data=body or bottle.request.body.read(-1), headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+def post(path):
+	res = gitlab.session(email=bottle.request.params['email'], password=bottle.request.params['password'])
 	return response(None, res)
