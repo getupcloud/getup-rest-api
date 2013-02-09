@@ -13,17 +13,16 @@ def post(user, prov, path):
 	url = prov(path)
 	res = url.POST(data=bottle.request.body, headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
 
-	try:
-		# register gitlab pubkey into openshift application
-		with open(os.path.expanduser(app.config.webgit['pubkey_file'])) as pubkey:
-			# dont re-post if key is already there
-			current_key = prov.broker.rest.user.keys('getupcloud').GET().json
-			key = dict(zip(['type', 'content'], pubkey.readline().split()), name='getupcloud')
-			if current_key['content'] != key['content']:
-				r = prov.broker.rest.user.keys.POST(data=key)
-				if r.status_code != 409 and not r.ok:
-					print 'error registering pubkey "getupcloud" into openshift application: %s' % r
-	except Exception, ex:
-		print 'exception registering pubkey "getupcloud" into openshift application: %s: %s' % (ex.__class__, ex)
+	# check if openshift user already has getupcloud key
+	user_res = prov.broker.rest.user.keys('getupcloud').GET()
+	if user_res.ok and user_res.json.get('content') == bottle.request.params.get('content'):
+		return response(user, res)
+
+	# register getupcloud key to openshift user
+	with open(os.path.expanduser(app.config.webgit['pubkey_file'])) as pubkey:
+		key = dict(zip(['type', 'content'], pubkey.readline().split()), name='getupcloud')
+		user_res = prov.broker.rest.user.keys.POST(data=key)
+		if user_res.status_code != 409 and not user_res.ok:
+			print 'error registering pubkey "getupcloud" into openshift application: %s' % user_res
 
 	return response(user, res)
