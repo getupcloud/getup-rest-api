@@ -11,7 +11,7 @@ def get(user, prov, path):
 	res = url.GET(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	return response(user, res)
 
-@aaa.authoritative_user
+#@aaa.authoritative_user
 @provider.provider
 def post(user, prov, path):
 	return _data_request(user, prov(path).POST)

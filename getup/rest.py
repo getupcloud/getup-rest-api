@@ -138,6 +138,8 @@ def handle_broker_keys(keyname=None):
 # Broker passthru
 #
 @bottle.route('/broker/cartlist', method=ALL_METHODS)
+@bottle.route('/broker/cartlist/', method=ALL_METHODS)
+@bottle.route('/broker/cartlist/<path:path>', method=ALL_METHODS)
 def handle_broker(path=None):
 	'''Broker everything else
 	'''
