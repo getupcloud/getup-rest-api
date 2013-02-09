@@ -6,7 +6,7 @@ set -ex
 [ -e requirements.txt ] || cd ..
 
 if [ ! -d .env ]; then
-	virtualenv .env
+	virtualenv --python=python2.7 .env
 fi
 
 source .env/bin/activate
