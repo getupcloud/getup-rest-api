@@ -55,7 +55,7 @@ def handle_status():
 def handle_domains(**kvargs):
 	'''Broker domains administration.
 	'''
-	if bottle.request.method == 'POST':
+	if bottle.request.method.upper() == 'POST':
 		return _method(api.broker.domain, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
@@ -80,7 +80,7 @@ def handle_domain(**kvargs):
 def handle_app(**kvargs):
 	'''Broker application administration.
 	'''
-	if bottle.request.method == in [ 'POST' 'DELETE' ]:
+	if bottle.request.method.upper() in [ 'POST' 'DELETE' ]:
 		return _method(api.broker.app, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
@@ -127,9 +127,9 @@ def handle_broker_keys(keyname=None):
 	'''Broker keys administration.
 	Garantees a single key to spread to all backends.
 	'''
-	if bottle.request.method == 'POST':
+	if bottle.request.method.upper() == 'POST':
 		return _method(api.broker.keys, path=bottle.request.path)
-	elif bottle.request.method in [ 'PUT', 'DELETE' ]:
+	elif bottle.request.method.upper() in [ 'PUT', 'DELETE' ]:
 		return _method(api.broker.keys, keyname=keyname, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
