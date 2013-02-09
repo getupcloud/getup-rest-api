@@ -17,11 +17,10 @@ def user(userid=None, token=None):
 		users = Hammock('https://' + app.config.webgit['hostname'], headers=hdr).users
 	return users.GET().json
 
-def session(email, password):
+def session(body):
 	gitlab = Hammock('https://' + app.config.webgit['hostname'])
 	hdrs['Content-Type'] = 'application/json'
-	body = {'email': email, 'password': password}
-	return gitlab.api.v2.session.POST(data=json.dumps(body), headers=hdrs)
+	return gitlab.api.v2.session.POST(data=body, headers=hdrs)
 
 class Gitlab:
 	def __init__(self):

@@ -191,7 +191,7 @@ def handle_user(name):
 def handle_user(**kvargs):
 	'''Gitlab user session (auth via password, not token)
 	'''
-	return _method(api.gitlab.session, path=bottle.request.path)
+	return _method(api.gitlab.session)
 
 #
 # Gitlab passthru
