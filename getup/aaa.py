@@ -172,8 +172,8 @@ def create_app(user, app_data):
 	data = { field:app_data[field] for field in app_data if field in fields }
 	return account(user, event='create-app', value=data)
 
-def delete_app(user, app_name):
-	return account(user, event='delete-app', value={'name': app_name})
+def delete_app(user, domain_id, app_name):
+	return account(user, event='delete-app', value={'name': app_name, 'domain_id': domain_id})
 
 def create_gear(user, gear_data):
 	return account(user, event='create-gear', value={'name': gear_data})
