@@ -6,5 +6,5 @@ from getup import gitlab
 from getup.response import response
 
 def post():
-	res = gitlab.session(body=bottle.request.body.read())
+	res = gitlab.session(body=bottle.request.body)
 	return response(None, res)

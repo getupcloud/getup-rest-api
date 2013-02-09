@@ -146,9 +146,9 @@ def accounting(**labels):
 					return res
 
 			if callable(filter_data_callback):
-				save_data = filter_data_callback(bottle.request.body.read(-1))
+				save_data = filter_data_callback(bottle.request.body)
 			else:
-				save_data = bottle.request.body.read(-1)
+				save_data = bottle.request.body
 
 			if 200 <= res.status_code < 300:
 				event_value = {

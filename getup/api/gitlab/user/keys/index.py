@@ -9,7 +9,7 @@ from getup import database, response, gitlab
 def post(user, api, path):
 	# dont need to post key to openshift beacuse gitlab's
 	# system hook will do it for us
-	res = api.add_key(bottle.request.body.read(-1), headers=util.filter_headers())
+	res = api.add_key(bottle.request.body, headers=util.filter_headers())
 	return None
 
 @aaa.authoritative_user

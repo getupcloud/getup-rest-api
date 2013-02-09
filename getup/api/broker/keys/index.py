@@ -47,6 +47,6 @@ def delete(user, prov, api, keyname, path):
 	return _data_request(user, prov(path).DELETE)
 
 def _data_request(user, method, body=None):
-	res = method(data=body or bottle.request.body.read(-1), headers=util.filter_headers(), cookies=bottle.request.cookies)
+	res = method(data=body or bottle.request.body, headers=util.filter_headers(), cookies=bottle.request.cookies)
 	return response(user, res)
 

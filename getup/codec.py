@@ -15,7 +15,7 @@ class Codec:
 
 class NullCodec(Codec):
 	def encode(self, data=None): return data
-	def decode(self, data=None): return data if data is not None else bottle.request.body.read(-1)
+	def decode(self, data=None): return data if data is not None else bottle.request.body
 
 class JsonCodec(Codec):
 	def encode(self, data, *vargs, **kvargs):

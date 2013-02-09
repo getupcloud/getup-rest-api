@@ -18,5 +18,5 @@ def delete(user, api, path):
 	return _request(user, url.DELETE)
 
 def _request(user, method, body=None):
-	res = method(data=body or bottle.request.body.read(-1), headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+	res = method(data=body or bottle.request.body, headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	return response(user, res)
