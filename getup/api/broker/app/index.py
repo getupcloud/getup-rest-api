@@ -20,5 +20,5 @@ def post(user, prov, path):
 def delete(user, prov, path):
 	res = prov(path).DELETE(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	if res.ok:
-		aaa.delete_app(user, path.split('/')[-1:])
+		aaa.delete_app(user, path.split('/')[-1])
 	return response(user, res)
