@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import bottle
 from getup import aaa, provider
 from getup.response import response
