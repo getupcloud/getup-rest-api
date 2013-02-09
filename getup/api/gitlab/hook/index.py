@@ -11,8 +11,7 @@ def post():
 	'''
 	user = None
 	event = bottle.request.json
-	print 'HOOK EVENT:', event
-	if event['event_name'] in [ 'key_save', 'key_destroy' ]:
+	if event.get('event_name') in [ 'key_save', 'key_destroy' ]:
 		# POST/DELETE key to/from openshift.
 		# If it was triggered by gitlab's system hooks (web or /api), broker will return OK.
 		# If it was triggered by api (/broker), broker will return 409-120/121 since /broker
