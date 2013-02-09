@@ -26,3 +26,11 @@ def post(user, prov, path):
 			print 'error registering pubkey "getupcloud" into openshift application: %s' % user_res
 
 	return response(user, res)
+
+@aaa.authoritative_user
+@provider.provider
+def post(user, prov, path):
+	url = prov(path)
+	res = url.DELETE(data=bottle.request.body, headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+	prov.broker.rest.user.keys('getupcloud').DELETE()
+	return response(user, res)
