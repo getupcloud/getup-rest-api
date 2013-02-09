@@ -29,16 +29,16 @@ def post():
 		else:
 			res = prov.del_key(name=event['title'])
 		return response(user, res)
-	elif event['event_name'] in [ 'project_create', 'project_destroy' ]:
-		# Account project create/delete
-		user = database.user(email=event['owner_email'])
-		ev_name = 'create_proj' if event['event_name'] == 'project_create' else 'delete_proj'
-		ev_value = {
-			'req_url': event['name'],
-			'req_data': json.dumps(event),
-			'res_status': 200,
-		}
-		aaa.account(user, ev_name, ev_value)
+	#elif event['event_name'] in [ 'project_create', 'project_destroy' ]:
+	#	# Account project create/delete
+	#	user = database.user(email=event['owner_email'])
+	#	ev_name = 'create_proj' if event['event_name'] == 'project_create' else 'delete_proj'
+	#	ev_value = {
+	#		'req_url': event['name'],
+	#		'req_data': json.dumps(event),
+	#		'res_status': 200,
+	#	}
+	#	aaa.account(user, ev_name, ev_value)
 
 	# unhandled hooks returns always OK
 	return response(user, status=http.HTTP_OK)

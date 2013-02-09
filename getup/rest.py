@@ -51,14 +51,22 @@ def handle_status():
 # Broker domains
 #
 @bottle.route('/broker/rest/domains',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/', method=ALL_METHODS)
+@aaa.valid_user
+def handle_domains(**kvargs):
+	'''Broker domains administration.
+	'''
+	if bottle.request.method == 'POST':
+		return _method(api.broker.domain)
+	else:
+		return _method(api.broker, path=bottle.request.path)
+
 @bottle.route('/broker/rest/domains/<domain>',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/', method=ALL_METHODS)
 @aaa.valid_user
-def handle_domains(**kvargs):
+def handle_domain(**kvargs):
 	'''Broker domain administration.
 	'''
-	return _method(api.broker, path=bottle.request.path)
+	return _method(api.broker.domain, path=bottle.request.path)
 
 ##TODO: account
 #
