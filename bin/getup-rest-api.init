@@ -55,7 +55,7 @@ stop() {
   else
     ## Program is not running, exit with error.
     echo "Error! $DESC not started!"
-    exit 1
+    return 1
   fi
 }
 
@@ -68,7 +68,7 @@ reload() {
     echo "$NAME."
   else
     echo "Error, $NAME not running!"
-    exit 1
+    return 1
   fi
 }
 
@@ -88,14 +88,14 @@ case "$1" in
         start
         ;;
   stop)
-        stop
+        stop || exit $?
         ;;
   restart)
         stop && sleep 2
         start
         ;;
   reload|force-reload)
-        reload
+        reload || exit $?
         ;;
   status)
         status
