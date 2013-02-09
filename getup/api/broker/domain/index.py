@@ -5,6 +5,8 @@ import bottle
 from getup import aaa, provider
 from getup.response import response
 
+app = bottle.app()
+
 @aaa.authoritative_user
 @provider.provider
 def post(user, prov, path):
