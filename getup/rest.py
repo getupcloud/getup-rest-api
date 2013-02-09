@@ -56,7 +56,7 @@ def handle_domains(**kvargs):
 	'''Broker domains administration.
 	'''
 	if bottle.request.method == 'POST':
-		return _method(api.broker.domain)
+		return _method(api.broker.domain, path=bottle.request.path)
 	else:
 		return _method(api.broker, path=bottle.request.path)
 
