@@ -29,8 +29,9 @@ def post(user, prov, path):
 
 @aaa.authoritative_user
 @provider.provider
-def post(user, prov, path):
+def delete(user, prov, path):
 	url = prov(path)
 	res = url.DELETE(data=bottle.request.body, headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+	# remove getupcloud key of openshift user
 	prov.broker.rest.user.keys('getupcloud').DELETE()
 	return response(user, res)
