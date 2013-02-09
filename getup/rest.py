@@ -80,7 +80,6 @@ def handle_domain(**kvargs):
 def handle_app(**kvargs):
 	'''Broker application administration.
 	'''
-	print '-->', bottle.request.method, bottle.request.url, dict(bottle.request.params)
 	if bottle.request.method == 'POST':
 		return _method(api.broker.app, path=bottle.request.path)
 	else:
@@ -93,7 +92,6 @@ def handle_app(**kvargs):
 def handle_events_app(**kvargs):
 	'''Broker application events.
 	'''
-	print '-->', bottle.request.method, bottle.request.url, dict(bottle.request.params)
 	return _method(api.broker, path=bottle.request.path)
 
 #
