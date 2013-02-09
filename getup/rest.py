@@ -207,12 +207,12 @@ def handle_gitlab_hook():
 #
 # Binding Project <-> App
 #
-@bottle.route('/bindings', method=ALL_METHODS)
+@bottle.route('/bindings/domains/<domain>/applications/<name>/projects', method=ALL_METHODS)
 @aaa.valid_user
-def handle_targets():
+def handle_targets(domain, name):
 	'''
 	'''
-	return _method(api.bindings)
+	return _method(api.bindings, domain=domain, name=name)
 
 #
 # Accouting

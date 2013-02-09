@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-from getup import aaa, provider, codec, gitlab
+from getup import aaa, provider, codec, gitlab, http
 from getup.response import response
 
 @aaa.authoritative_user
 @provider.provider
 @gitlab.api
 @gitlab.ssh
-def post(user, prov, api, ssh):
+def post(domain, name, user, prov, api, ssh):
 	try:
-		params = bottle.request.params
-		domain, name, project = params['domain'], params['name'], params['project']
+		project = bottle.request.params['name']
 	except KeyError:
 		return response(user, status=http.HTTP_UNPROCESSABLE_ENTITY)
 
@@ -29,23 +28,26 @@ def post(user, prov, api, ssh):
 
 	# add git remote 'app' to project repository
 	# pointing to openshift gear repository.
-	values = dict(project=project.replace('/', ''), **app)
-	values['remote'] = remote='%(project)s@%(name)s-%(domain_id)s' % values
+	values = dict(
+		git_host=bottle.app().config.webgit['hostname'],
+		project=project.replace('/', '').replace('.', ''),
+		**app)
+	values['remote'] = '%(project)s@%(name)s-%(domain_id)s' % values
 	# TODO: parametrize paths and remote name
 	cmd = '''
 	set -xe
-	TMP_REPO=`mktemp -d`
-	cd $TMP_REPO
+	TMP_REPO="`mktemp -d`"
+	cd "$TMP_REPO"
 	{
-		git clone %(git_url)s %(project)s &&
-		cd %(project)s &&
-		git push git@git.getupcloud.com:%(project)s.git master
+		git clone '%(git_url)s' '%(project)s' &&
+		cd '%(project)s' &&
+		git push 'git@%(git_host)s:%(project)s.git' master
 	} && STATUS=$? || STATUS=$?
 	rm -rf "$TMP_REPO"
-	[ "$STATUS" -eq 0 ] || exit 1
-	cd /home/git/repositories/%(project)s.git
-	git remote add %(remote)s '%(git_url)s' || git remote set-url %(remote)s '%(git_url)s'
-	git fetch %(remote)s master
+	[ "$STATUS" -eq 0 ] || exit $STATUS
+	cd ~git/repositories/%(project)s.git
+	git remote add '%(remote)s' '%(git_url)s' || git remote set-url '%(remote)s' '%(git_url)s'
+	git fetch '%(remote)s' master
 	''' % values
 
 	ret = ssh.run(cmd)

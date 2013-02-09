@@ -64,7 +64,7 @@ def ssh(wrapped):
 		if 'port' in conf:
 			params['port'] = conf['port']
 		if 'identity_file' in conf:
-			params['key_filename'] = os.path.expanduser(conf['identity_file'])
+			params['identity_file'] = os.path.expanduser(conf['identity_file'])
 
 		conn = SSHConnection(**params)
 		kva['ssh'] = conn

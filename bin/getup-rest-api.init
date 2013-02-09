@@ -13,7 +13,7 @@ export NAME="getup-rest-api"
 export RUN_USER=getup
 export RUN_GROUP=getup
 export APP_ROOT="/home/getup/getup-rest-api"
-export RUN_DIR="/var/run"
+export RUN_DIR="/var/run/getup-rest-api"
 export PID_FILE="$RUN_DIR/$NAME.pid"
 export APP_SOCKET="unix:$RUN_DIR/$NAME.sock"
 export LOG_DIR="/var/log/getup-rest-api"
@@ -39,7 +39,8 @@ start() {
     exit 1
   else
     install -d $LOG_DIR --owner=$RUN_USER --group=$RUN_GROUP --mode=770
-    ./start $DAEMON_OPTS || { echo failed; exit 1; }
+    install -d $RUN_DIR --owner=$RUN_USER --group=$RUN_GROUP --mode=775
+    runuser -g $RUN_GROUP $RUN_USER -c "./start $DAEMON_OPTS" || { echo failed; exit 1; }
     echo "$DESC started"
   fi
 }
@@ -54,7 +55,7 @@ stop() {
   else
     ## Program is not running, exit with error.
     echo "Error! $DESC not started!"
-    exit 1
+    return 1
   fi
 }
 
@@ -67,7 +68,7 @@ reload() {
     echo "$NAME."
   else
     echo "Error, $NAME not running!"
-    exit 1
+    return 1
   fi
 }
 
@@ -87,15 +88,14 @@ case "$1" in
         start
         ;;
   stop)
-        stop
+        stop || exit $?
         ;;
   restart)
-        stop
-        sleep 2
+        stop && sleep 2
         start
         ;;
   reload|force-reload)
-        reload
+        reload || exit $?
         ;;
   status)
         status
