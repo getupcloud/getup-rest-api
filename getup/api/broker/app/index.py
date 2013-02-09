@@ -20,7 +20,5 @@ def post(user, prov, path):
 def delete(user, prov, path):
 	res = prov(path).DELETE(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	if res.ok:
-		fields = [ 'creation_time', 'gear_count', 'embeded', 'name', 'domain_id' ]
-		app_data = dict([ tuple(i, res.json['data'].get(i)) for i in fields ])
-		aaa.create_app(user, app_data)
+		aaa.delete_app(user, path.split('/')[-1:])
 	return response(user, res)
