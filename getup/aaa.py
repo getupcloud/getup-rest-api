@@ -167,6 +167,12 @@ def account(user, event, value):
 		value=json.dumps(value)
 	database.accounting(user=user, event_name=event, event_value=value)
 
+def create_app(user, app_data):
+	return account(user, event='create-app', value=app_data)
+
+def delete_app(user, app_data):
+	return account(user, event='delete-app', value=app_data)
+
 def create_gear(user, gear_name):
 	return account(user, event='create-gear', value={'name':gear_name})
 
