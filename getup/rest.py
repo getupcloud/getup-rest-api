@@ -137,7 +137,7 @@ def handle_broker_keys(keyname=None):
 #
 # Broker passthru
 #
-@bottle.route('/broker/rest/<path:path>')
+@bottle.route('/broker/<path:path>')
 @aaa.valid_user
 def handle_broker(path=None):
 	'''Broker everything else
