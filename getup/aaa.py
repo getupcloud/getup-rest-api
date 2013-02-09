@@ -168,7 +168,7 @@ def account(user, event, value):
 	database.accounting(user=user, event_name=event, event_value=value)
 
 def create_app(user, app_data):
-	fields = [ 'creation_time', 'gear_count', 'embedded', 'name', 'domain_id' ]
+	fields = [ 'gear_count', 'embedded', 'name', 'domain_id' ]
 	data = { field:app_data[field] for field in app_data if field in fields }
 	return account(user, event='create-app', value=data)
 
