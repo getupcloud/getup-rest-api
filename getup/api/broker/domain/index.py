@@ -2,7 +2,7 @@
 
 import os
 import bottle
-from getup import aaa, provider
+from getup import aaa, provider, util
 from getup.response import response
 
 app = bottle.app()
@@ -11,7 +11,7 @@ app = bottle.app()
 @provider.provider
 def post(user, prov, path):
 	url = prov(path)
-	res = url.POST(data=bottle.request.body, headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
+	res = url.POST(data=bottle.request.body, headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 
 	# check if openshift user already has getupcloud key
 	user_res = prov.broker.rest.user.keys('getupcloud').GET()
