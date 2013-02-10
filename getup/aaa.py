@@ -175,6 +175,9 @@ def create_app(user, app_data):
 def delete_app(user, domain_id, app_name):
 	return account(user, event='delete-app', value={'name': app_name, 'domain_id': domain_id})
 
+def scale_up(user, domain_id, app_name):
+	return account(user, event='scale-upp', value={'name': app_name, 'domain_id': domain_id})
+
 def create_gear(user, gear_data):
 	return account(user, event='create-gear', value={'name': gear_data})
 

@@ -76,7 +76,6 @@ def handle_domain(**kvargs):
 @bottle.route('/broker/rest/domains/<domain>/applications/', method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>',  method=ALL_METHODS)
 @bottle.route('/broker/rest/domains/<domain>/applications/<name>/', method=ALL_METHODS)
-@aaa.valid_user
 def handle_app(**kvargs):
 	'''Broker application administration.
 	'''

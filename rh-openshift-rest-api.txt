@@ -32,6 +32,7 @@ GET    /broker/rest/cartridges
 GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges
 POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges cartridge=[Cartridge_Name]
 GET    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name]
+PUT    /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name] <scales_from=[Min_Gears] scales_to=[Max_Gears]>
 POST   /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name]/events event=[start|stop|restart|reload]
 DELETE /broker/rest/domains/[Domain_ID]/applications/[App_Name]/cartridges/[Cartridge_Name]
 
