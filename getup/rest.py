@@ -10,12 +10,12 @@ app = bottle.default_app()
 #
 # Binding Project <-> App
 #
-@bottle.route('/bindings/domains/<domain>/applications/<name>/projects', method=ALL_METHODS)
-@aaa.user
-def handle_targets(user, domain, name):
-	'''
-	'''
-	return _(api.bindings, domain=domain, name=name)
+#@bottle.route('/bindings/domains/<domain>/applications/<name>/projects', method=ALL_METHODS)
+#@aaa.user
+#def handle_targets(user, domain, name):
+#	'''
+#	'''
+#	return _(api.bindings, domain=domain, name=name)
 
 #
 # Health check
