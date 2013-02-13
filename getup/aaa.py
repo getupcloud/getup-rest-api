@@ -1,168 +1,73 @@
 # -*- coding: utf-8 -*-
 
+import json
 import bottle
 import response, database
-import base64
-import json
 
 app = bottle.app()
 
+#
+# Authentication
+#
 def _get_auth_token(params, headers):
 	return '', params.get('private_token', params.get('token'))
 
 def _get_auth_basic(params, headers):
 	try:
-		token = headers['Authorization']
-		auth_type, auth_token = token.split(None, 1)
-		if auth_type.lower() == 'basic':
-			return tuple(base64.decodestring(auth_token).split(':', 1)[:2])
-	except:
-		pass
-	return None, None
+		username, password = bottle.request.auth
+		return username, password
+	except TypeError:
+		return None, None
 
-def _auth_user():
-	#todo: secure token
-	for authenticator in [ _get_auth_token, _get_auth_basic ]:
-		username, auth_token = authenticator(bottle.request.params, bottle.request.headers)
-		if auth_token:
-			user = database.user(authentication_token=auth_token, email=username)
-			if user and user['authentication_token'] == auth_token:
-				return user
+def _get_user():
+	'''Read user/pass data from request using all known auth methods (token or basic).
+		Load user data from DB and match passwords.
+		Returns user object or None if failed.
+	'''
+	user = None
+	for read_auth_data in [ _get_auth_token, _get_auth_basic ]:
+		username, auth_token = read_auth_data(bottle.request.params, bottle.request.headers)
+		if username:
+			user = database.user(email=username)
+			if user['authentication_token'] != auth_token:
+				return False
+		elif auth_token:
+			user = database.user(authentication_token=auth_token)
+		if user:
+			return user
 	return False
 
 def _do_auth(predicate, response_class):
-	app.config.user = _auth_user()
-	return True if predicate(app.config.user) else False
+	app.config.user = _get_user()
+	return app.config.user if app.config.user and predicate(app.config.user) else None
 
-def admin_user(wrapped):
-	'''Decorator to enforce an admin user only.
+def _authenticate():
+	'''Authenticate user from database with a given pass, set app.config.user to authenticated user,
+		otherwise raises ResponseUnauthorized.
+	'''
+	user = _get_user()
+	if not user or user.blocked:
+		return response.ResponseUnauthorized()
+	return user
+
+def user(wrapped):
+	'''User authentication decorator.
+		Pass paramater 'user' into wrapped function.
 	'''
 	def wrapper(*vargs, **kvargs):
-		if not _do_auth(lambda u: u and u.admin and not u.blocked, response.ResponseForbidden):
-			return response.ResponseForbidden()
-		return wrapped(*vargs, **kvargs)
-	return wrapper
-
-def valid_user(wrapped):
-	'''Decorator to enforce a valid authenticated user.
-	'''
-	def wrapper(*vargs, **kvargs):
-		if not _do_auth(lambda u: u and not u.blocked, response.ResponseUnauthorized):
-			return response.ResponseUnauthorized()
-		return wrapped(*vargs, **kvargs)
-	return wrapper
-
-def authoritative_user(wrapped):
-	'''Decorator to query and validate an authenticated user.
-	It receives the username as parameter "username" and passes the user
-	record from database as parameters "user" to wrapped function.
-	Admin users can query any user.
-	'''
-	def wrapper(username=None, *vargs, **kvargs):
-		if username is None:
-			username = app.config.user.email
-		if username != app.config.user.email and username != app.config.user.id:
-			if not app.config.user.admin:
-				raise response.ResponseForbidden()
-			try:
-				user = database.user(id=int(username))
-			except ValueError:
-				user = database.user(email=username)
-			if not user:
-				raise response.ResponseForbidden()
-		else:
-			user = app.config.user
+		user = _authenticate()
 		return wrapped(user=user, *vargs, **kvargs)
 	return wrapper
 
-@valid_user
-@authoritative_user
-def auth_user(user):
-	return user
-
-def accounting(**labels):
-	'''Decorator to account HTTP requests. Only HTTP status 2xx are accounted.
-	To specify what HTTP method to account for, pass it as parameter in the
-	format "method-name=(event-name, result-filter=None, data-filter=None)"
-
-	A "result-filter" callback can be specified to validate if the request should
-	or not be accounted. This callback must be a callable and must evaluate to
-	True to activate accounting, otherwise accouting is not done for the current
-	request only. It receives a single parameter, the returned value from the
-	wrapped function.
-
-	In order to filter the accounted data, one can supply a "data-filter". It receives
-	the request's body and returns the saved event-value. The returned value is
-	jsonifyed prior to save.
-
-	Both "result-filter" and "data-filter" can be ommited. In this case, the format
-	is simplified to "method-name=event-name".
-
-	Example:
-
-		# some result-callback
-		def validate_delete(res):
-			# account only for HTTP 204
-			return res.status_code == 204
-
-		@bottle.route('/')
-		@accounting(POST='create_app', DELETE=('delete_app', validate_delete))
-		def root_handler():
-			return 'OK'
-	'''
-	class Accounter:
-		def __init__(self, wrapped):
-			if not labels:
-				raise ValueError('Missing accounting labels')
-			self.wrapped = wrapped
-			self.labels = labels
-			for l in labels.values():
-				if not isinstance(l, (basestring, list, tuple, dict)):
-					raise TypeError('Invalid accounting label: %r' % l)
-		def __call__(self, *vargs, **kvargs):
-			res = self.wrapped(*vargs, **kvargs)
-
-			# check if this method must be accounted
-			label = self.labels.get(bottle.request.method, None)
-			if label is None:
-				return res
-
-			# check if result and data callbacks was supplied
-			filter_callback, filter_data_callback = None, None
-			try:
-				event_name           = label['event-name']
-				filter_callback      = label.get('result-callback', None)
-				filter_data_callback = label.get('data-callback', None)
-			except (TypeError, AttributeError):
-				if len(label) == 3:
-					event_name, filter_callback, filter_data_callback = label
-				elif len(label) == 2:
-					event_name, filter_callback = label
-				else:
-					event_name = label
-
-			if callable(filter_callback):
-				if not filter_callback(res):
-					return res
-
-			if callable(filter_data_callback):
-				save_data = filter_data_callback(bottle.request.body)
-			else:
-				save_data = bottle.request.body
-
-			if 200 <= res.status_code < 300:
-				event_value = {
-					'req_url': res.request.path_url,
-					'req_data': save_data,
-					'res_status': res.status_code,
-				}
-				account(user=res.user, event_name=event_name, event_value=event_value)
-			return res
-	return Accounter
-
-def account(user, event, value):
+#
+# Accounting
+#
+def _account(user, event, value):
 	'''Register accounting event
 	'''
+	assert user,  'Accouting: invalid user'
+	assert event, 'Accouting: missing event name'
+
 	if not isinstance(value, basestring):
 		value = json.dumps(value)
 	database.accounting(user=user, event_name=event, event_value=value)
@@ -170,16 +75,19 @@ def account(user, event, value):
 def create_app(user, app_data):
 	fields = [ 'gear_count', 'embedded', 'name', 'domain_id' ]
 	data = { field:app_data[field] for field in app_data if field in fields }
-	return account(user, event='create-app', value=data)
+	return _account(user, event='create-app', value=data)
 
-def delete_app(user, domain_id, app_name):
-	return account(user, event='delete-app', value={'name': app_name, 'domain_id': domain_id})
+def delete_app(user, domain, application):
+	return _account(user, event='delete-app', value={'name': application, 'domain_id': domain})
 
-def scale_up(user, domain_id, app_name):
-	return account(user, event='scale-upp', value={'name': app_name, 'domain_id': domain_id})
+def scale_app(user, domain, application, events_data):
+	event = events_data('event')
+	if event in [ 'scale-up', 'scale-down' ]:
+		return _account(user, event=event, value={'name': application, 'domain_id': domain})
 
-def create_gear(user, gear_data):
-	return account(user, event='create-gear', value={'name': gear_data})
+def create_gear(user, domain, application, gear_data):
+	cartridge = gear_data.get('cartridge')
+	return _account(user, event='create-gear', value={'name': cartridge, 'domain_id': domain, 'application': application})
 
-def delete_gear(user, gear_name):
-	return account(user, event='delete-gear', value={'name': gear_name})
+def delete_gear(user, domain, application, cartridge):
+	return _account(user, event='delete-gear', value={'name': cartridge, 'domain_id': domain, 'application': application})
