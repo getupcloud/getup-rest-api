@@ -3,7 +3,7 @@
 
 import bottle
 import database, http
-import aaa, api, response
+import aaa
 
 app = bottle.default_app()
 

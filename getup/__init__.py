@@ -15,15 +15,15 @@ app = application = bottle.app()
 app.catchall = True
 
 import version
-import codec
-import http
-import model
+#import codec
+#import http
+#import model
 import config
 import database
-import gitlab
-import response
-import aaa
-import provider
+#import gitlab
+#import response
+#import aaa
+#import provider
 
 config.loadconfig(app)
 database.start(app)
