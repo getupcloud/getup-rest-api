@@ -15,7 +15,7 @@ app = application = bottle.app()
 app.catchall = True
 
 import version
-#import codec
+import codec
 #import http
 #import model
 import config
