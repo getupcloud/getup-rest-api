@@ -8,7 +8,10 @@ from getup.response import response
 @provider.provider
 def get(user, prov, path):
 	url = prov(path)
-	res = url.GET(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+	if bottle.request.body:
+		res = url.GET(data=bottle.request.body, headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
+	else:
+		res = url.GET(headers=util.filter_headers(['host']), cookies=bottle.request.cookies)
 	return response(user, res)
 
 @aaa.authoritative_user
@@ -27,5 +30,5 @@ def delete(user, prov, path):
 	return _data_request(user, prov(path).DELETE)
 
 def _data_request(user, method):
-	res = method(data=bottle.request.body.read(), headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
+	res = method(data=bottle.request.body, headers=dict(bottle.request.headers), cookies=bottle.request.cookies)
 	return response(user, res)
