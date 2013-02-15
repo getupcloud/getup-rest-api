@@ -86,7 +86,7 @@ def scale_app(user, domain, application, events_data):
 		return _account(user, event=event, value={'name': application, 'domain_id': domain})
 
 def create_gear(user, domain, application, gear_data):
-	cartridge = gear_data.get('cartridge')
+	cartridge = gear_data.get('name')
 	return _account(user, event='create-gear', value={'name': cartridge, 'domain_id': domain, 'application': application})
 
 def delete_gear(user, domain, application, cartridge):
