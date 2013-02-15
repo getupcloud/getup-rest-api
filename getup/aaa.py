@@ -81,7 +81,7 @@ def delete_app(user, domain, application):
 	return _account(user, event='delete-app', value={'name': application, 'domain_id': domain})
 
 def scale_app(user, domain, application, events_data):
-	event = events_data('event')
+	event = events_data.get('event')
 	if event in [ 'scale-up', 'scale-down' ]:
 		return _account(user, event=event, value={'name': application, 'domain_id': domain})
 
