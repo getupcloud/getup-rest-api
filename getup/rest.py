@@ -25,7 +25,7 @@ def handle_health_check():
 	'''Simple healthcheck
 	'''
 	bottle.response.content_type = 'text/plain'
-	return 'OK'
+	return 'OK\n'
 
 #
 # Broker callbacks
