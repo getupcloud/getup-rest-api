@@ -73,7 +73,7 @@ def post_application_cartridges(user, domain, application):
 	return 'ok'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>/cartridges/<cartridge>')
-@response_status(204)
+@response_status(200)
 @aaa.user
 def delete_application_cartridges(user, domain, application, cartridge):
 	aaa.delete_gear(user, domain, application, cartridge)
