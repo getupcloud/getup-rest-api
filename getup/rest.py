@@ -38,7 +38,11 @@ def response_status(*statuses):
 			self.statuses = statuses
 			self.func = func
 		def __call__(self, *va, **kva):
-			status = int(bottle.request.headers['X-Response-Status'])
+			try:
+				status = int(bottle.request.headers['X-Response-Status'])
+			except (ValueError, KeyError):
+				raise bottle.HTTPResponse(status=500, body='Invalid or missing header: X-Response-Status')
+
 			if status not in self.statuses:
 				raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
 			return self.func(*va, **kva)
