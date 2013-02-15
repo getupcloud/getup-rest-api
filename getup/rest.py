@@ -22,8 +22,10 @@ app = bottle.default_app()
 #
 @bottle.get('/health_check')
 def handle_health_check():
-	'''Simple healthcheck
+	'''Simple health check
 	'''
+	if 'X-Response-Status' in bottle.request.headers:
+		print '%s: X-Response-Status: %s' % (bottle.request.path, bottle.request.headers['X-Response-Status'])
 	bottle.response.content_type = 'text/plain'
 	return 'OK\n'
 
