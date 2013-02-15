@@ -35,12 +35,10 @@ def response_status(*statuses):
 		def __init__(self, func):
 			self.statuses = statuses
 			self.func = func
-			print '+', func
 		def __call__(self, *va, **kva):
 			status = int(bottle.request.headers['X-Response-Status'])
 			if status not in self.statuses:
 				raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
-			print '+', va, kva
 			return self.func(*va, **kva)
 	return ResponseStatusDecorator
 
@@ -79,5 +77,5 @@ def delete_application_cartridges(user, domain, application, cartridge):
 	aaa.delete_gear(user, domain, application, cartridge)
 	return 'ok'
 
-if __name__ == '__main__':
-	bottle.run(host='0.0.0.0', port=8011, debug=True, reloader=True)
+#if __name__ == '__main__':
+#	bottle.run(host='0.0.0.0', port=8011, debug=True, reloader=True)
