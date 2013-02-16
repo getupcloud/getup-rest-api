@@ -31,33 +31,36 @@ def _get_user():
 		if username:
 			user = database.user(email=username)
 			if user['authentication_token'] != auth_token:
-				return False
+				return None
 		elif auth_token:
 			user = database.user(authentication_token=auth_token)
 		if user:
 			return user
-	return False
+	return None
 
 def _do_auth(predicate, response_class):
-	app.config.user = _get_user()
-	return app.config.user if app.config.user and predicate(app.config.user) else None
+	user = _get_user()
+	if user is not None and predicate(app.config.user):
+		return app.config.user
+	return None
 
 def _authenticate():
 	'''Authenticate user from database with a given pass, set app.config.user to authenticated user,
 		otherwise raises ResponseUnauthorized.
 	'''
 	user = _get_user()
-	if not user or user.blocked:
-		return response.ResponseUnauthorized()
+	print '-',user
+	if user is None or user.blocked:
+		raise response.ResponseUnauthorized()
 	return user
 
-def user(wrapped):
+def user(func):
 	'''User authentication decorator.
 		Pass paramater 'user' into wrapped function.
 	'''
 	def wrapper(*vargs, **kvargs):
 		user = _authenticate()
-		return wrapped(user=user, *vargs, **kvargs)
+		return func(user=user, *vargs, **kvargs)
 	return wrapper
 
 #
