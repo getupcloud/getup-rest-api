@@ -2,7 +2,8 @@
 
 import json
 import bottle
-import response, database
+import response
+import database
 
 app = bottle.app()
 

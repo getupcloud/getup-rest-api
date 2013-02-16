@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-import requests
-from getup import http, proto
+import http
+import proto
 
 class Exposable:
 	_expose = []

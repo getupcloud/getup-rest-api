@@ -3,7 +3,6 @@
 import bottle
 #from bottle.ext import sqlalchemy
 from sqlalchemy import text, MetaData, Table, Column, Integer, String, TIMESTAMP, BOOLEAN
-from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from engine import make_engine
 import sqlalchemy.ext

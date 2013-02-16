@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-import database, http
 import aaa
 
 app = bottle.default_app()
