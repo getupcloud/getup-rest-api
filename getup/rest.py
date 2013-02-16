@@ -52,35 +52,47 @@ def response_status(*statuses):
 @aaa.user
 def post_application(user, domain):
 	aaa.create_app(user, bottle.request.params)
-	return 'ok'
+	return 'OK'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>')
 @response_status(204)
 @aaa.user
 def delete_application(user, domain, application):
 	aaa.delete_app(user, domain, application)
-	return 'ok'
+	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications/<application>/events')
 @response_status(200)
 @aaa.user
 def application_events(user, domain, application):
 	aaa.scale_app(user, domain, application, bottle.request.params)
-	return 'ok'
+	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications/<application>/cartridges')
 @response_status(201)
 @aaa.user
 def post_application_cartridges(user, domain, application):
 	aaa.create_gear(user, domain, application, bottle.request.params)
-	return 'ok'
+	return 'OK'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>/cartridges/<cartridge>')
 @response_status(200)
 @aaa.user
 def delete_application_cartridges(user, domain, application, cartridge):
 	aaa.delete_gear(user, domain, application, cartridge)
-	return 'ok'
+	return 'OK'
+
+#
+# Health check
+#
+@bottle.get('/health_check')
+def handle_health_check():
+	'''Simple health check
+	'''
+	if 'X-Response-Status' in bottle.request.headers:
+		print '%s: X-Response-Status: %s' % (bottle.request.path, bottle.request.headers['X-Response-Status'])
+	bottle.response.content_type = 'text/plain'
+	return 'OK\n'
 
 #if __name__ == '__main__':
 #	bottle.run(host='0.0.0.0', port=8011, debug=True, reloader=True)

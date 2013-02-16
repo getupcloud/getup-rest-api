@@ -41,6 +41,7 @@ Accounting = Users = Keys = None
 def _create_table(engine, *tables):
 	for table in tables:
 		if not engine.has_table(table.__tablename__):
+			print '## Creating table: %s' % table.__tablename__
 			table.metadata.create_all(engine)
 
 def start(app):

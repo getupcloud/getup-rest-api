@@ -37,7 +37,3 @@ bottle.install(ExtraJSONPlugin())
 
 # roll the bones
 import rest
-
-##############
-if __name__ == '__main__':
-	bottle.run(host='localhost', port=8080, debug=True, reloader=True)

@@ -14,6 +14,7 @@ valid_config = [
 def loadconfig(app, filename=None):
 	_file = os.environ.get('CONFIG_FILE', filename or app_root/'getup-rest-api.conf')
 	_ns = dict()
+	print '## Loading config file: %s' % _file
 	with open(_file) as f:
 		exec f.read() in _ns
 	_conf = dict(((k,v) for (k,v) in _ns.iteritems() if k in valid_config))
