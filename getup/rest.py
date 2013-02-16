@@ -3,30 +3,33 @@
 
 import bottle
 import aaa
+#import bindings
 
 app = bottle.default_app()
 
 #
 # Binding Project <-> App
 #
-#@bottle.route('/bindings/domains/<domain>/applications/<name>/projects', method=ALL_METHODS)
-#@aaa.user
-#def handle_targets(user, domain, name):
-#	'''
-#	'''
-#	return _(api.bindings, domain=domain, name=name)
-
-#
-# Health check
-#
-@bottle.get('/health_check')
-def handle_health_check():
-	'''Simple health check
+@bottle.get('/getup/rest/domains/<domain>/applications/<application>/bindings')
+@aaa.user
+def handle_bindings(user, domain, application):
+	'''Binding project to application.
 	'''
-	if 'X-Response-Status' in bottle.request.headers:
-		print '%s: X-Response-Status: %s' % (bottle.request.path, bottle.request.headers['X-Response-Status'])
-	bottle.response.content_type = 'text/plain'
-	return 'OK\n'
+	return 'OK: [%s] %s-%s\n' % (user, domain, application)
+
+@bottle.get('/getup/rest/domains/<domain>/applications/<application>/bindings/<project>')
+@aaa.user
+def handle_bindings(user, domain, application, project):
+	'''Binding project to application.
+	'''
+	return 'OK: %s@%s-%s\n' % (project, domain, application)
+
+@bottle.post('/getup/rest/domains/<domain>/applications/<application>/bindings')
+@aaa.user
+def handle_bindings(user, domain, application):
+	'''Binding project to application.
+	'''
+	return 'OK: %s@%s-%s\n' % (bottle.request.params.name, domain, application)
 
 #
 # Broker callbacks
