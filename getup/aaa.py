@@ -77,9 +77,10 @@ def _account(user, event, value):
 		value = json.dumps(value)
 	database.accounting(user=user, event_name=event, event_value=value)
 
-def create_app(user, app_data):
-	fields = [ 'gear_count', 'embedded', 'name', 'domain_id' ]
+def create_app(user, domain, app_data):
+	fields = [ 'name', 'cartridge', 'scale' ]
 	data = { field:app_data[field] for field in app_data if field in fields }
+	data['domain_id'] = domain
 	return _account(user, event='create-app', value=data)
 
 def delete_app(user, domain, application):
