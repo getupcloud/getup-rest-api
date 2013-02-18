@@ -7,6 +7,9 @@ import remotes
 
 app = bottle.default_app()
 
+def request_params():
+	return bottle.request.json or bottle.request.params
+
 #
 # Binding Project <-> App
 #
@@ -29,8 +32,8 @@ def handle_remotes(user, project, remote):
 def handle_remotes(user, project):
 	'''Bind project to application.
 	'''
-	domain = bottle.request.params.get('domain')
-	application = bottle.request.params.get('application')
+	domain = request_params().get('domain')
+	application = request_params().get('application')
 	return remotes.add_remote(user=user, project=project, domain=domain, application=application)
 
 @bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
@@ -63,7 +66,7 @@ def response_status(*statuses):
 @response_status(201)
 @aaa.user
 def post_application(user, domain):
-	aaa.create_app(user, domain, bottle.request.params)
+	aaa.create_app(user, domain, request_params())
 	return 'OK'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>')
@@ -77,14 +80,14 @@ def delete_application(user, domain, application):
 @response_status(200)
 @aaa.user
 def application_events(user, domain, application):
-	aaa.scale_app(user, domain, application, bottle.request.params)
+	aaa.scale_app(user, domain, application, request_params())
 	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications/<application>/cartridges')
 @response_status(201)
 @aaa.user
 def post_application_cartridges(user, domain, application):
-	aaa.create_gear(user, domain, application, bottle.request.params)
+	aaa.create_gear(user, domain, application, request_params())
 	return 'OK'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>/cartridges/<cartridge>')

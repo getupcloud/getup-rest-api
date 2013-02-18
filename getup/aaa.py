@@ -78,10 +78,6 @@ def _account(user, event, value):
 	database.accounting(user=user, event_name=event, event_value=value)
 
 def create_app(user, domain, app_data):
-	print '+ app:', dict(app_data), type(app_data)
-	print '+    :', app_data.keys(), app_data.values()
-	print '+ json:', type(bottle.request.json), bottle.request.json
-	print '+ app.hdr:', dict(bottle.request.headers)
 	fields = [ 'name', 'cartridge', 'cartridges', 'scale' ]
 	data = { field:app_data[field] for field in app_data if field in fields }
 	data['domain_id'] = domain
@@ -96,7 +92,6 @@ def scale_app(user, domain, application, events_data):
 		return _account(user, event=event, value={'name': application, 'domain_id': domain})
 
 def create_gear(user, domain, application, gear_data):
-	print '+ gear:', dict(gear_data)
 	cartridge = gear_data.get('name')
 	return _account(user, event='create-gear', value={'name': cartridge, 'domain_id': domain, 'application': application})
 
