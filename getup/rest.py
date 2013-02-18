@@ -63,7 +63,6 @@ def response_status(*statuses):
 @response_status(201)
 @aaa.user
 def post_application(user, domain):
-	print '++', dict(bottle.request.params)
 	aaa.create_app(user, domain, bottle.request.params)
 	return 'OK'
 
