@@ -22,7 +22,7 @@ database = dict(
 )
 
 webgit = dict(
-	hostname      = 'gitlab.ops.getupcloud.com',
+	hostname      = 'git.ops.getupcloud.com',
 	token_header  = 'Private-Token',
 	git_user      = 'gitlab',
 	binding_bin   = '~getup/bin/bindings',

@@ -44,6 +44,14 @@ def handle_remotes(user, project, remote):
 	return remotes.del_remote(user, project, remote)
 
 #
+# Gitlab system hooks
+#
+@bottle.post('/gitlab/hook')
+@aaa.user
+def handler_gitalb_hook():
+	gitlab.
+
+#
 # Broker callbacks
 #
 def response_status(*statuses):
