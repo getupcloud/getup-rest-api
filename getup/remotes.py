@@ -10,13 +10,13 @@ from response import response
 app = bottle.app()
 
 def _cmd_list(project):
-	return '%s list %s' % (app.config.webgit['bindings_bin'], project)
+	return '%s list %s' % (app.config.webgit['remotes_bin'], project)
 
 def _cmd_add(project, name, url):
-	return '%s add %s %s "%s"' % (app.config.webgit['bindings_bin'], project, name, url)
+	return '%s add %s %s "%s"' % (app.config.webgit['remotes_bin'], project, name, url)
 
 def _cmd_del(project, name):
-	return '%s del %s %s' % (app.config.webgit['bindings_bin'], project, name)
+	return '%s del %s %s' % (app.config.webgit['remotes_bin'], project, name)
 
 def _get_remotes(user, project):
 	# garantee ownership
