@@ -4,6 +4,8 @@ import bottle
 import http
 import proto
 import codec
+import json
+import StringIO
 
 class Exposable:
 	_expose = []
@@ -132,6 +134,13 @@ def response(user, res=None, status=None, body='', headers=None):
 		status_line = '%i %s' % (status, http.responses(status))
 	if headers:
 		hdrs.update(headers)
+
+	if isinstance(body, (dict, list, tuple)):
+		data = StringIO.StringIO()
+		json.dump(body, data, indent=3)
+		data.seek(0)
+		body = data
+		hdrs['Content-Type'] = 'application/json'
 
 	resp = bottle.HTTPResponse(body=body, status=status_line, **hdrs)
 

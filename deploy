@@ -3,7 +3,10 @@
 set -ex
 
 # ensure we are inside toplevel dir
-[ -e requirements.txt ] || cd ..
+if ! [ -e requirements.txt ]; then
+	echo missing requirements.txt: $PWD
+	exit 1
+fi
 
 if [ ! -d .env ]; then
 	virtualenv --python=python2.7 .env

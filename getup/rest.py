@@ -3,33 +3,42 @@
 
 import bottle
 import aaa
-#import bindings
+import bindings
 
 app = bottle.default_app()
 
 #
 # Binding Project <-> App
 #
-@bottle.get('/getup/rest/domains/<domain>/applications/<application>/bindings')
+@bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
-def handle_bindings(user, domain, application):
-	'''Binding project to application.
+def handle_bindings(user, project):
+	'''List all project bindings.
 	'''
-	return 'OK: [%s] %s-%s\n' % (user, domain, application)
+	return bindings.list_remotes(user, project)
 
-@bottle.get('/getup/rest/domains/<domain>/applications/<application>/bindings/<project>')
+@bottle.get('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
-def handle_bindings(user, domain, application, project):
-	'''Binding project to application.
+def handle_bindings(user, project, remote):
+	'''Retrieve project binding.
 	'''
-	return 'OK: %s@%s-%s\n' % (project, domain, application)
+	return bindings.get_remote(user, project, remote)
 
-@bottle.post('/getup/rest/domains/<domain>/applications/<application>/bindings')
+@bottle.post('/getup/rest/projects/<project>/remotes')
 @aaa.user
-def handle_bindings(user, domain, application):
-	'''Binding project to application.
+def handle_bindings(user, project):
+	'''Bind project to application.
 	'''
-	return 'OK: %s@%s-%s\n' % (bottle.request.params.name, domain, application)
+	domain = bottle.request.params.get('domain')
+	application = bottle.request.params.get('application')
+	return bindings.add_remote(user=user, project=project, domain=domain, application=application)
+
+@bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
+@aaa.user
+def handle_bindings(user, project, remote):
+	'''Delete project binding.
+	'''
+	return bindings.del_remote(user, project, remote)
 
 #
 # Broker callbacks
@@ -96,6 +105,3 @@ def handle_health_check():
 		print '%s: X-Response-Status: %s' % (bottle.request.path, bottle.request.headers['X-Response-Status'])
 	bottle.response.content_type = 'text/plain'
 	return 'OK\n'
-
-#if __name__ == '__main__':
-#	bottle.run(host='0.0.0.0', port=8011, debug=True, reloader=True)

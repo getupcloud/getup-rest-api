@@ -25,6 +25,7 @@ webgit = dict(
 	hostname      = 'gitlab.ops.getupcloud.com',
 	token_header  = 'Private-Token',
 	git_user      = 'gitlab',
+	binding_bin   = '~getup/bin/bindings',
 	identity_file = '~/.ssh/id_rsa',
 	pubkey_file   = '~/.ssh/id_rsa.pub',
 )

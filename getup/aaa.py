@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+from functools import wraps
 import bottle
 import response
 import database
@@ -49,7 +50,6 @@ def _authenticate():
 		otherwise raises ResponseUnauthorized.
 	'''
 	user = _get_user()
-	print '-',user
 	if user is None or user.blocked:
 		raise response.ResponseUnauthorized()
 	return user
@@ -58,9 +58,10 @@ def user(func):
 	'''User authentication decorator.
 		Pass paramater 'user' into wrapped function.
 	'''
+	@wraps(func)
 	def wrapper(*vargs, **kvargs):
-		user = _authenticate()
-		return func(user=user, *vargs, **kvargs)
+		app.config.user = _authenticate()
+		return func(user=app.config.user, *vargs, **kvargs)
 	return wrapper
 
 #

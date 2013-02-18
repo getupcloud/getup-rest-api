@@ -4,4 +4,4 @@ export APP_ROOT=$(dirname $0)
 export CONFIG_FILE=$APP_ROOT/getup-rest-api-devel.conf
 export PYTHONPATH=$PYTHONPATH:$APP_ROOT
 
-python -m getup "bottle.run(host='localhost', port=8080, debug=True, reloader=True)"
+python -m getup "$@" --debug --access-logfile -

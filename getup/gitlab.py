@@ -53,13 +53,28 @@ class Gitlab:
 			hdrs.update(headers)
 		return self.api.api.v2.user.keys(id).DELETE(headers=hdrs, **kvargs)
 
-def api(wrapped):
-	@wraps(wrapped)
-	def wrapper(user, *vargs, **kvargs):
-		return wrapped(user=user, api=Gitlab(), *vargs, **kvargs)
-	return wrapper
+#def api(wrapped):
+#	@wraps(wrapped)
+#	def wrapper(user, *vargs, **kvargs):
+#		return wrapped(user=user, api=Gitlab(), *vargs, **kvargs)
+#	return wrapper
 
+def SSHClient():
+	conf = app.config.webgit
+	params = {
+		'server': conf['hostname'],
+		'login':  conf['git_user'],
+	}
+	if 'port' in conf:
+		params['port'] = conf['port']
+	if 'identity_file' in conf:
+		params['identity_file'] = os.path.expanduser(conf['identity_file'])
+
+	return SSHConnection(**params)
+
+'''
 def ssh(wrapped):
+	@wraps(wrapped)
 	def wrapper(*va, **kva):
 		conf = app.config.webgit
 		params = {
@@ -76,4 +91,4 @@ def ssh(wrapped):
 		ret = wrapped(*va, **kva)
 		return ret
 	return wrapper
-
+'''
