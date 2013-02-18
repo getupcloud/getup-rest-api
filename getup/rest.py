@@ -48,8 +48,9 @@ def handle_remotes(user, project, remote):
 #
 @bottle.post('/gitlab/hook')
 @aaa.user
-def handler_gitalb_hook():
-	gitlab.
+def handler_gitlab_hook():
+	print bottle.request.json
+	return 'OK'
 
 #
 # Broker callbacks
