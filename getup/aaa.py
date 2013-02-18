@@ -78,7 +78,8 @@ def _account(user, event, value):
 	database.accounting(user=user, event_name=event, event_value=value)
 
 def create_app(user, domain, app_data):
-	print '+ app:', dict(app_data)
+	print '+ app:', dict(app_data), type(app_data)
+	print '+ app.hdr:', dict(bottle.request.headers)
 	fields = [ 'name', 'cartridge', 'cartridges', 'scale' ]
 	data = { field:app_data[field] for field in app_data if field in fields }
 	data['domain_id'] = domain
