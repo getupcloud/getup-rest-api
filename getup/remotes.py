@@ -25,7 +25,7 @@ def run_command(user, cmd):
 			exec 'output=%s' % res.stdout in ns
 			output = ns['output']
 		except:
-			raise Exception("Unexpected result from command: type=%s (%s)" % type(res.stdout), cmd)
+			raise Exception("Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
 		if 'status' not in output:
 			raise Exception("Invalid result from command: missing 'status' field")
 		return output
@@ -44,8 +44,7 @@ def _get_remotes(user, project):
 	if not res.ok:
 		raise response(user, res)
 
-	cmd = _cmd_list(project)
-	return run_command(user, cmd)
+	return run_command(user, _cmd_list(project))
 
 def list_remotes(user, project):
 	if not all([user, project]):
@@ -82,8 +81,7 @@ def _create_remote(user, project, domain, application, command='add'):
 		return response(user, res)
 
 	remote = '%(name)s-%(domain_id)s' % app_data
-	cmd = _cmd_create(command, project, remote, app_data['git_url'])
-	result = run_command(user, command)
+	result = run_command(user, _cmd_create(command, project, remote, app_data['git_url']))
 	return response(user, status=http.HTTP_CREATED, body=result)
 
 def _install_getup_key(user):
@@ -117,6 +115,5 @@ def del_remote(user, project, remote):
 	if not res.ok:
 		return response(user, res)
 
-	cmd = _cmd_del(project, remote)
-	run_command(user, cmd)
+	run_command(user, _cmd_del(project, remote))
 	return response(user, status=http.HTTP_NO_CONTENT)
