@@ -22,13 +22,13 @@ def run_command(user, cmd):
 	def parse_command_result(res):
 		try:
 			ns = {}
-			exec 'res=%s' % res.stdout in ns
-			res = ns['res']
+			exec 'output=%s' % res.stdout in ns
+			output = ns['output']
 		except:
 			raise Exception("Unexpected result from command: type=%s" % type(res.stdout))
-		if 'status' not in res:
+		if 'status' not in output:
 			raise Exception("Invalid result from command: missing 'status' field")
-		return res
+		return output
 
 	try:
 		result = parse_command_result(gitlab.SSHClient().run(cmd))
@@ -52,6 +52,7 @@ def list_remotes(user, project):
 		return response(user, status=http.HTTP_UNPROCESSABLE_ENTITY)
 
 	remotes = _get_remotes(user, project)
+	print '+++', remotes
 	return response(user, status=http.HTTP_OK, body=remotes)
 
 def get_remote(user, project, remote):
