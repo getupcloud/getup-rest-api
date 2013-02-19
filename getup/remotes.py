@@ -66,11 +66,28 @@ def _create_remote(user, project, domain, application, command='add'):
 	result = run_command(user, command)
 	return response(user, status=http.HTTP_CREATED, body=json.loads(result.stdout))
 
-def add_remote(user, project, domain, application):
-	return _create_remote(user, project, domain, application, 'add')
+def _install_getup_key(user):
+	try:
+		with open(app.config.webgit['pubkey_file']) as fp:
+			prov = provider.OpenShift(user)
+			for i, key in enumerate(filter(lambda l: l.split(), fp.readlines())):
+				try:
+					type, content, name = key.split()[:3]
+				except ValueError:
+					type, content, name = key.split()[:2] + [ 'getupcloud-key-%i' % i ]
+				res = prov.add_key(name=name, content=content, type=type)
+				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT]:
+					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.reason)
+	except Exception, ex:
+		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
 
 def clone_remote(user, project, domain, application):
+	_install_getup_key(user)
 	return _create_remote(user, project, domain, application, 'clone')
+
+def add_remote(user, project, domain, application):
+	_install_getup_key(user)
+	return _create_remote(user, project, domain, application, 'add')
 
 def del_remote(user, project, remote):
 	if not all([user, project, remote]):
