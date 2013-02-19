@@ -25,8 +25,7 @@ def run_command(user, cmd):
 			exec 'output=%s' % res.stdout in ns
 			output = ns['output']
 		except:
-			print '+++', res.stdout
-			raise Exception("Unexpected result from command: type=%s" % type(res.stdout))
+			raise Exception("Unexpected result from command: type=%s (%s)" % type(res.stdout), cmd)
 		if 'status' not in output:
 			raise Exception("Invalid result from command: missing 'status' field")
 		return output
