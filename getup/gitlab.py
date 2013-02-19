@@ -11,16 +11,16 @@ def user(userid=None, token=None):
 	users = Hammock('https://' + app.config.webgit['hostname'], headers=hdr).users
 	if userid:
 		u = users.GET(userid).json
-		u['keys'] = user.keys.GET().json
+		u['keys'] = user.keys.GET(verify=False).json
 		return [ u ]
 	else:
 		users = Hammock('https://' + app.config.webgit['hostname'], headers=hdr).users
-	return users.GET().json
+	return users.GET(verify=False).json
 
 def session(body):
 	gitlab = Hammock('https://' + app.config.webgit['hostname'])
 	hdrs = {'Content-Type': 'application/json'}
-	return gitlab.api.v2.session.POST(data=body, headers=hdrs)
+	return gitlab.api.v2.session.POST(verify=False, data=body, headers=hdrs)
 
 class Gitlab:
 	def __init__(self):
@@ -35,9 +35,9 @@ class Gitlab:
 
 	def get_project(self, name=None, **kvargs):
 		if name:
-			return self.api.api.v2.projects(name).GET(**kvargs)
+			return self.api.api.v2.projects(name).GET(verify=False, **kvargs)
 		else:
-			return self.api.api.v2.projects.GET()
+			return self.api.api.v2.projects.GET(verify=False)
 
 	def add_key(self, title, key, headers=None, **kvargs):
 		hdrs = self.headers
@@ -45,13 +45,13 @@ class Gitlab:
 			hdrs.update(headers)
 		hdrs['Content-Type'] = 'application/json'
 		body = {'title': title, 'key': key }
-		return self.api.api.v2.user.keys.POST(data=json.dumps(body), headers=hdrs, **kvargs)
+		return self.api.api.v2.user.keys.POST(verify=False, data=json.dumps(body), headers=hdrs, **kvargs)
 
 	def del_key(self, id, headers=None, **kvargs):
 		hdrs = self.headers
 		if headers:
 			hdrs.update(headers)
-		return self.api.api.v2.user.keys(id).DELETE(headers=hdrs, **kvargs)
+		return self.api.api.v2.user.keys(id).DELETE(verify=False, headers=hdrs, **kvargs)
 
 #def api(wrapped):
 #	@wraps(wrapped)

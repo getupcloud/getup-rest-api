@@ -86,5 +86,5 @@ def run_command(user, cmd):
 			raise Exception({'stdout': ret.stdout, 'stderr': ret.stderr, 'status': ret.returncode})
 		return ret # json.loads(ret.stdout)
 	except Exception, ex:
-		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=ex)
+		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
 

@@ -2,9 +2,9 @@
 
 import os, sys
 
-certdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'cert')
-if certdir not in sys.path:
-	sys.path.append(certdir)
+#certdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'cert')
+#if certdir not in sys.path:
+#	sys.path.append(certdir)
 
 # must be done before fist import bottle
 import httplib
