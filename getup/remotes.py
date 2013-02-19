@@ -12,8 +12,8 @@ app = bottle.app()
 def _cmd_list(project):
 	return '%s list %s' % (app.config.webgit['remotes_bin'], project)
 
-def _cmd_add(project, name, url):
-	return '%s add %s %s "%s"' % (app.config.webgit['remotes_bin'], project, name, url)
+def _cmd_create(cmd, project, name, url):
+	return '%s %s %s %s "%s"' % (app.config.webgit['remotes_bin'], cmd, project, name, url)
 
 def _cmd_del(project, name):
 	return '%s del %s %s' % (app.config.webgit['remotes_bin'], project, name)
@@ -46,7 +46,7 @@ def get_remote(user, project, remote):
 	res.update(rem[0])
 	return response(user, status=http.HTTP_OK, body=res)
 
-def add_remote(user, project, domain, application):
+def _create_remote(user, project, domain, application, command='add'):
 	if not all([user, project, domain, application]):
 		return response(user, status=http.HTTP_UNPROCESSABLE_ENTITY)
 
@@ -62,9 +62,15 @@ def add_remote(user, project, domain, application):
 		return response(user, res)
 
 	remote = '%(name)s-%(domain_id)s' % app_data
-	cmd = _cmd_add(project, remote, app_data['git_url'])
-	result = run_command(user, cmd)
+	cmd = _cmd_create(command, project, remote, app_data['git_url'])
+	result = run_command(user, command)
 	return response(user, status=http.HTTP_CREATED, body=json.loads(result.stdout))
+
+def add_remote(user, project, domain, application):
+	return _create_remote(user, project, domain, application, 'add')
+
+def clone_remote(user, project, domain, application):
+	return _create_remote(user, project, domain, application, 'clone')
 
 def del_remote(user, project, remote):
 	if not all([user, project, remote]):
