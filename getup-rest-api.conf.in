@@ -6,7 +6,7 @@ _database_config = dict(
 	username = '@@MYSQL_USERNAME@@',
 	password = '@@MYSQL_PASSWORD@@',
 	charset  = 'utf8',
-	unix_socket = '/var/run/mysqld/mysqld.sock',## @@MYSQL_SOCKET@@
+	unix_socket = '/var/run/mysqld/mysqld.sock', ## @@MYSQL_SOCKET@@
 )
 
 database = dict(
@@ -35,4 +35,3 @@ provider = dict(
 		hostname = 'broker.ops.getupcloud.com',
 	),
 )
-
