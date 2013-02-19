@@ -52,7 +52,6 @@ def handle_remotes(user, project):
 	application = request_params().get('application')
 	return remotes.clone_remote(user=user, project=project, domain=domain, application=application)
 
-
 #
 # Gitlab system hooks
 #

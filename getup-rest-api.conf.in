@@ -27,7 +27,7 @@ webgit = dict(
 	git_user      = 'gitlab',
 	binding_bin   = '~getup/bin/bindings',
 	identity_file = '~/.ssh/id_rsa',
-	pubkey_file   = '~/.ssh/id_rsa.pub',
+	pubkey_file   = '~/getup-rest-api/.ssh/authorized_keys',
 )
 
 provider = dict(

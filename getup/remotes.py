@@ -71,6 +71,8 @@ def _install_getup_key(user):
 		with open(app.config.webgit['pubkey_file']) as fp:
 			prov = provider.OpenShift(user)
 			for i, key in enumerate(filter(lambda l: l.split(), fp.readlines())):
+				if key[0].startswith('#'):
+					continue
 				try:
 					type, content, name = key.split()[:3]
 				except ValueError:
