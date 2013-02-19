@@ -73,10 +73,7 @@ def _install_getup_key(user):
 			for i, key in enumerate(filter(lambda l: l.split(), fp.readlines())):
 				if key[0].startswith('#'):
 					continue
-				try:
-					type, content, name = key.split()[:3]
-				except ValueError:
-					type, content, name = key.split()[:2] + [ 'getupcloudkey%i' % i ]
+				type, content, name = key.split()[:2] + [ 'getupcloud%i' % i ]
 				res = prov.add_key(name=name, content=content, type=type)
 				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT]:
 					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.reason)
