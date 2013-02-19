@@ -18,6 +18,26 @@ def _cmd_create(cmd, project, name, url):
 def _cmd_del(project, name):
 	return '%s del %s %s' % (app.config.webgit['remotes_bin'], project, name)
 
+def run_command(user, cmd):
+	def parse_command_result(res):
+		try:
+			ns = {}
+			exec 'res=%s' % res.stdout in ns
+			res = ns['res']
+		except:
+			raise Exception("Unexpected result from command: type=%s" % type(res.stdout))
+		if 'status' not in res:
+			raise Exception("Invalid result from command: missing 'status' field")
+		return res
+
+	try:
+		result = parse_command_result(gitlab.SSHClient().run(cmd))
+		if 200 > result['status'] >= 400:
+			raise response(user, status=result['status'], body=str(result['data']))
+		return result
+	except Exception, ex:
+		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
+
 def _get_remotes(user, project):
 	# garantee ownership
 	res = gitlab.Gitlab().get_project(project)
@@ -25,7 +45,7 @@ def _get_remotes(user, project):
 		raise response(user, res)
 
 	cmd = _cmd_list(project)
-	return json.loads(run_command(user, cmd).stdout)
+	return run_command(user, cmd)
 
 def list_remotes(user, project):
 	if not all([user, project]):
@@ -64,7 +84,7 @@ def _create_remote(user, project, domain, application, command='add'):
 	remote = '%(name)s-%(domain_id)s' % app_data
 	cmd = _cmd_create(command, project, remote, app_data['git_url'])
 	result = run_command(user, command)
-	return response(user, status=http.HTTP_CREATED, body=json.loads(result.stdout))
+	return response(user, status=http.HTTP_CREATED, body=result)
 
 def _install_getup_key(user):
 	try:
@@ -98,15 +118,5 @@ def del_remote(user, project, remote):
 		return response(user, res)
 
 	cmd = _cmd_del(project, remote)
-	result = run_command(user, cmd)
+	run_command(user, cmd)
 	return response(user, status=http.HTTP_NO_CONTENT)
-
-def run_command(user, cmd):
-	try:
-		ret = gitlab.SSHClient().run(cmd)
-		if ret.returncode != 0:
-			raise Exception({'stdout': ret.stdout, 'stderr': ret.stderr, 'status': ret.returncode})
-		return ret # json.loads(ret.stdout)
-	except Exception, ex:
-		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
-
