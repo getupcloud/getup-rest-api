@@ -17,7 +17,12 @@ def loadconfig(app, filename=None):
 	print '## Loading config file: %s' % _file
 	with open(_file) as f:
 		exec f.read() in _ns
-	_conf = { k: os.path.expanduser(os.path.expandvars(v)) if isinstance(v, basestring) else v for k, v in _ns.iteritems() if k in valid_config }
+
+	_conf = {}
+	# read only valid sections
+	for section, value in filter(lambda (a, b): a in valid_config, _ns.iteritems()):
+		_conf[section] = { k: os.path.expanduser(os.path.expandvars(v)) if isinstance(v, basestring) else v for k, v in value.iteritems() }
+
 	if isinstance(app, dict):
 		app.update(_conf)
 		return app

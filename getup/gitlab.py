@@ -68,7 +68,7 @@ def SSHClient():
 	if 'port' in conf:
 		params['port'] = conf['port']
 	if 'identity_file' in conf:
-		params['identity_file'] = os.path.expanduser(conf['identity_file'])
+		params['identity_file'] = conf['identity_file']
 
 	return SSHConnection(**params)
 
