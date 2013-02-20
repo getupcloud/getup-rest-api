@@ -30,7 +30,7 @@ def run_command(user, cmd):
 			print res.stdout
 			print '--- stderr'
 			print res.stderr
-			print '--- retcode: %i' % res.retcode;
+			print '--- status: %i' % res.returncode;
 			raise Exception("Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
 		if 'status' not in output:
 			raise Exception("Invalid result from command: missing 'status' field")
