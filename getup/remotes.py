@@ -25,7 +25,7 @@ def run_command(user, cmd):
 			exec 'output=%s' % res.stdout in ns
 			output = ns['output']
 		except:
-			print "Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
+			print "Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd)
 			print '--- stdout'
 			print res.stdout
 			print '--- stderr'
