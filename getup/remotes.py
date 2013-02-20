@@ -25,6 +25,12 @@ def run_command(user, cmd):
 			exec 'output=%s' % res.stdout in ns
 			output = ns['output']
 		except:
+			print "Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
+			print '--- stdout'
+			print res.stdout
+			print '--- stderr'
+			print res.stderr
+			print '--- retcode: %i' % res.retcode;
 			raise Exception("Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
 		if 'status' not in output:
 			raise Exception("Invalid result from command: missing 'status' field")
@@ -93,9 +99,9 @@ def _install_getup_key(user):
 					continue
 				type, content, name = key.split()[:2] + [ 'getupcloud%i' % i ]
 				res = prov.add_key(name=name, content=content, type=type)
-				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT]:
+				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT ]:
 					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.reason)
-				print 'installed getup pub-key: %s/%s %s' % (type, name, content[:8])
+				print 'installed getup pub-key: %s/%s %s...%s' % (type, name, content[:6], content[-6:])
 	except Exception, ex:
 		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
 
