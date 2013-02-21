@@ -34,7 +34,6 @@ class Gitlab:
 		return getattr(self.api, name)
 
 	def add_project(self, name, **kvargs):
-		hdrs['Content-Type'] = 'application/json'
 		return self.api.api.v2.projects.POST(verify=False, name=json.dumps({'name': name}), **kvargs)
 
 	def get_project(self, name=None, **kvargs):
