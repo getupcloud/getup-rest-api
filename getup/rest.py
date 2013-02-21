@@ -4,6 +4,10 @@
 import bottle
 import aaa
 import remotes
+import http
+import gitlab
+import provider
+from response import response
 
 app = bottle.default_app()
 
@@ -51,6 +55,30 @@ def post_clone(user, project):
 	domain = request_params().get('domain')
 	application = request_params().get('application')
 	return remotes.clone_remote(user=user, project=project, domain=domain, application=application)
+
+@bottle.post('/getup/rest/projects/<project>/create')
+@aaa.user
+def post_create(user, project):
+	'''Clone and bind project to application, creating any missing component.
+	'''
+	domain = request_params().get('domain')
+	application = request_params().get('application')
+
+	checklist = {
+		'project': False,
+		'domain': False,
+		'application': False,
+	}
+
+	checklist['project'] = gitlab.Gitlab().get_project(project).status_code == 404
+	checklist['domain'] = provider.OpenShift(user).get_dom(name=domain).status_code == 404
+	checklist['application']  = provider.OpenShift(user).get_app(domain=domain, name=application).status_code == 404
+
+	if not all(checklist.values()):
+		return response(user, status=http.HTTP_CONFLICT, body=checklist)
+
+	return response(user, status=http.HTTP_OK)
+	#return remotes.clone_remote(user=user, project=project, domain=domain, application=application)
 
 #
 # Gitlab system hooks
