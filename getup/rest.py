@@ -15,21 +15,21 @@ def request_params():
 #
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
-def handle_remotes(user, project):
+def get_remotes(user, project):
 	'''List all project remotes.
 	'''
 	return remotes.list_remotes(user, project)
 
 @bottle.get('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
-def handle_remotes(user, project, remote):
+def get_remotes_remote(user, project, remote):
 	'''Retrieve project binding.
 	'''
 	return remotes.get_remote(user, project, remote)
 
 @bottle.post('/getup/rest/projects/<project>/remotes')
 @aaa.user
-def handle_remotes(user, project):
+def post_remotes(user, project):
 	'''Bind project to application.
 	'''
 	domain = request_params().get('domain')
@@ -38,15 +38,15 @@ def handle_remotes(user, project):
 
 @bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
-def handle_remotes(user, project, remote):
+def delete_remotes_remote(user, project, remote):
 	'''Delete project binding.
 	'''
 	return remotes.del_remote(user, project, remote)
 
 @bottle.post('/getup/rest/projects/<project>/clone')
 @aaa.user
-def handle_remotes(user, project):
-	'''Clone from and bind to project to application.
+def post_clone(user, project):
+	'''Clone and bind project to application.
 	'''
 	domain = request_params().get('domain')
 	application = request_params().get('application')
