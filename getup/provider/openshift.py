@@ -28,8 +28,10 @@ class OpenShift(Provider):
 	def get_dom(self, name, **kvargs):
 		return self.api.broker.rest.domains(name).GET(verify=False, **kvargs)
 
-	def add_app(self, domain, name, cartridge, scale=False, **kvargs):
+	def add_app(self, domain, name, cartridge, scale=False, gear_profile=None, **kvargs):
 		data = { 'name': name, 'cartridge': cartridge, 'scale': scale }
+		if gear_profile:
+			data.update(gear_profile=gear_profile)
 		return self.api.broker.rest.domains(domain).applications.POST(verify=False, data=data, **kvargs)
 
 	def get_app(self, domain, name, **kvargs):
