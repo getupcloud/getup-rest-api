@@ -19,11 +19,12 @@ def request_params():
 #
 @bottle.post('/getup/rest/projects')
 @aaa.user
-def post_create(user, project):
+def post_create(user):
 	'''Clone and bind project to application, creating any missing component.
 	'''
 	domain = request_params().get('domain')
 	application = request_params().get('application')
+	project = '%s-%s' % (application, domain)
 
 	checklist = {
 		'project': False,
