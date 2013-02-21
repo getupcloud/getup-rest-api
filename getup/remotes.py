@@ -122,5 +122,5 @@ def del_remote(user, project, remote):
 	if not res.ok:
 		return response(user, res)
 
-	run_command(user, _cmd_del(project, remote))
-	return response(user, status=http.HTTP_NO_CONTENT)
+	result = run_command(user, _cmd_del(project, remote))
+	return response(user, status=result['status'], body=result)
