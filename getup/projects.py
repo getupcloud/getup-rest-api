@@ -142,7 +142,7 @@ def create_project(user, project, domain, application, **app_args):
 	res = gitlab.Gitlab().add_project(name=project)
 	add_report('project', res)
 
-	# then create openshift app
+	# create openshift app
 	res = provider.OpenShift(user).add_app(domain=domain, name=application, **app_args)
 	add_report('application', res)
 	if not res.ok:
