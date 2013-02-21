@@ -3,11 +3,21 @@
 
 import bottle
 import aaa
-import remotes
 import http
 import gitlab
 import provider
+import project
 from response import response
+
+#class StripPathMiddleware(object):
+#	def __init__(self, app):
+#		self.app = app
+#	def __call__(self, e, h):
+#		e['PATH_INFO'] = e['PATH_INFO'].rstrip('/')
+#		return self.app(e,h)
+#
+#app = bottle.app()
+#app = StripPathMiddleware(app)
 
 app = bottle.default_app()
 
@@ -18,13 +28,14 @@ def request_params():
 # Binding Project <-> App
 #
 @bottle.post('/getup/rest/projects')
+@codec.parse_params('domain', 'application', 'cartridge', project='[application]-[domain]', scale=False, app_args={})
 @aaa.user
-def post_create(user):
+def post_create(user, domain, application, project, cartridge, scale):
 	'''Clone and bind project to application, creating any missing component.
 	'''
-	domain = request_params().get('domain')
-	application = request_params().get('application')
-	project = '%s-%s' % (application, domain)
+	scale = bool(scale)
+	if project == '[application]-[domain]':
+		project = '%s-%s' % (application, domain)
 
 	checklist = {
 		'project': False,
@@ -36,25 +47,24 @@ def post_create(user):
 	checklist['domain'] = provider.OpenShift(user).get_dom(name=domain).status_code == 200
 	checklist['application']  = provider.OpenShift(user).get_app(domain=domain, name=application).status_code == 404
 
-	if not all(checklist.values()):
+	if not checklist['project'] or not checklist['application']:
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-	return response(user, status=http.HTTP_OK)
-	#return remotes.clone_remote(user=user, project=project, domain=domain, application=application)
+	return project.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale, **app_args)
 
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
 def get_remotes(user, project):
 	'''List all project remotes.
 	'''
-	return remotes.list_remotes(user, project)
+	return project.list_remotes(user, project)
 
 @bottle.get('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
 def get_remotes_remote(user, project, remote):
 	'''Retrieve project binding.
 	'''
-	return remotes.get_remote(user, project, remote)
+	return project.get_remote(user, project, remote)
 
 @bottle.post('/getup/rest/projects/<project>/remotes')
 @aaa.user
@@ -63,23 +73,23 @@ def post_remotes(user, project):
 	'''
 	domain = request_params().get('domain')
 	application = request_params().get('application')
-	return remotes.add_remote(user=user, project=project, domain=domain, application=application)
+	return project.add_remote(user=user, project=project, domain=domain, application=application)
 
 @bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
 def delete_remotes_remote(user, project, remote):
 	'''Delete project binding.
 	'''
-	return remotes.del_remote(user, project, remote)
+	return project.del_remote(user, project, remote)
 
-@bottle.post('/getup/rest/projects/<project>/clone')
+@bottle.post('/getup/rest/projects/<project>/clone', name='project_clone')
 @aaa.user
 def post_clone(user, project):
 	'''Clone and bind project to application.
 	'''
 	domain = request_params().get('domain')
 	application = request_params().get('application')
-	return remotes.clone_remote(user=user, project=project, domain=domain, application=application)
+	return project.clone_remote(user=user, project=project, domain=domain, application=application)
 
 #
 # Gitlab system hooks

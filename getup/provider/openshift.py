@@ -22,8 +22,14 @@ class OpenShift(Provider):
 	def __call__(self, path):
 		return self.api(path if path else '')
 
+	def add_dom(self, name, **kvargs):
+		return self.api.domains.POST(verify=False, data={'id': name}, **kvargs)
+
 	def get_dom(self, name, **kvargs):
 		return self.api.broker.rest.domains(name).GET(verify=False, **kvargs)
+
+	def add_app(self, domain, name, cartridge, scale=False, **kvargs):
+		return self.api.broker.rest.domains(domain).applications.POST(verify=False, name=name, cartridge=cartridge, scale=scale, **kvargs)
 
 	def get_app(self, domain, name, **kvargs):
 		return self.api.broker.rest.domains(domain).applications(name).GET(verify=False, **kvargs)

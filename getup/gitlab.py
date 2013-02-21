@@ -33,6 +33,9 @@ class Gitlab:
 	def __getattr__(self, name):
 		return getattr(self.api, name)
 
+	def add_project(self, name, **kvargs):
+		return self.api.api.v2.projects.POST(verify=False, name=name, **kvargs)
+
 	def get_project(self, name=None, **kvargs):
 		if name:
 			return self.api.api.v2.projects(name).GET(verify=False, **kvargs)

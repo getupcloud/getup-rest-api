@@ -124,3 +124,31 @@ def del_remote(user, project, remote):
 
 	result = run_command(user, _cmd_del(project, remote))
 	return response(user, status=result['status'], body=result)
+
+def create_project(user, project, domain, application, **app_args):
+	report = []
+	def add_report(what, res):
+		report.append({what: {'status': res.status_code, 'content': res.json }})
+
+	# create openshift domain
+	res = provider.OpenShift(user).get_dom(domain)
+	add_report('domain', res)
+	if res.status_code == 404:
+		res = provider.OpenShift(user).add_dom(domain)
+		if not res.ok:
+			return response(user, status=res.status_code, body=res.json)
+
+	# create gitlab project
+	res = gitlab.Gitlab().add_project(name=project)
+	add_report('project', res)
+
+	# then create openshift app
+	res = provider.OpenShift(user).add_app(domain=domain, name=application, **app_args)
+	add_report('application', res)
+	if not res.ok:
+		return response(user, status=res.status_code, body=res.json)
+
+	# clone and setup default remote
+	clone_url = get_url('project_clone'
+	clone_remote(user, project, domain, application)
+	return response(user, status=http.HTTP_CREATED, body=report)
