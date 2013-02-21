@@ -111,6 +111,8 @@ def parse_params(*mandatory, **optional):
 				# default is json from bottle
 				if bottle.request.json:
 					request_data = bottle.request.json
+				elif bottle.request.params:
+					return bottle.request.params
 				else:
 					raise response.ResponseInternalServerError(description='Invalid content (missing codec?)')
 			params = {}
