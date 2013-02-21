@@ -22,6 +22,9 @@ class OpenShift(Provider):
 	def __call__(self, path):
 		return self.api(path if path else '')
 
+	def get_dom(self, name, **kvargs):
+		return self.api.broker.rest.domains(name).GET(verify=False, **kvargs)
+
 	def get_app(self, domain, name, **kvargs):
 		return self.api.broker.rest.domains(domain).applications(name).GET(verify=False, **kvargs)
 
