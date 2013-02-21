@@ -39,7 +39,7 @@ def run_command(user, cmd):
 	try:
 		result = parse_command_result(gitlab.SSHClient().run(cmd))
 		if 200 > result['status'] >= 400:
-			raise response(user, status=result['status'], body=str(result['data']))
+			raise response(user, status=result['status'], body=result['data'])
 		return result
 	except Exception, ex:
 		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
