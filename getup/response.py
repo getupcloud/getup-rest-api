@@ -3,7 +3,6 @@
 import bottle
 import http
 import proto
-import codec
 import json
 import StringIO
 
@@ -46,7 +45,7 @@ class APIResponse(bottle.HTTPResponse):
 		if isinstance(description, basestring):
 			body['status']['description'] = description
 		headers['Status'] = code
-		body = codec.json_codec.encode(body)
+		body = json.dumps(body)
 		bottle.HTTPResponse.__init__(self, body=body, status=status, header={'Content-Type': 'application/json'}, **headers)
 
 class ResponseInternalServerError(APIResponse):
