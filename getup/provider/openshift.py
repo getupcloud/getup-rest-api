@@ -23,19 +23,21 @@ class OpenShift(Provider):
 		return self.api(path if path else '')
 
 	def add_dom(self, name, **kvargs):
-		return self.api.domains.POST(verify=False, data={'id': name}, **kvargs)
+		return self.api.domains.POST(verify=False, data={ 'id': name }, **kvargs)
 
 	def get_dom(self, name, **kvargs):
 		return self.api.broker.rest.domains(name).GET(verify=False, **kvargs)
 
 	def add_app(self, domain, name, cartridge, scale=False, **kvargs):
-		return self.api.broker.rest.domains(domain).applications.POST(verify=False, name=name, cartridge=cartridge, scale=scale, **kvargs)
+		data = { 'name': name, 'cartridge': cartridge, 'scale': scale }
+		return self.api.broker.rest.domains(domain).applications.POST(verify=False, data=data, **kvargs)
 
 	def get_app(self, domain, name, **kvargs):
 		return self.api.broker.rest.domains(domain).applications(name).GET(verify=False, **kvargs)
 
 	def add_key(self, name, type, content, **kvargs):
-		return self.api.broker.rest.user.keys.POST(verify=False, data={'name': name, 'type': type, 'content': content}, **kvargs)
+		data = { 'name': name, 'type': type, 'content': content }
+		return self.api.broker.rest.user.keys.POST(verify=False, data=data, **kvargs)
 
 	def del_key(self, name, **kvargs):
 		return self.api.broker.rest.user.keys(name).DELETE(verify=False, **kvargs)
@@ -69,7 +71,7 @@ class OpenShift(Provider):
 	def create_domain(self, name):
 		'''Create a new domain. Returns a Domain instance or raise on error.
 		'''
-		res = self.api.domains.POST(verify=False, data={'id': name})
+		res = self.api.domains.POST(verify=False, data={ 'id': name })
 		if res.ok:
 			return Domain(self. api, res)
 		errors = {
