@@ -29,8 +29,8 @@ def request_params():
 # Binding Project <-> App
 #
 @bottle.post('/getup/rest/projects')
-@codec.parse_params('domain', 'application', 'cartridge', project='[application]-[domain]', scale=False, app_args={})
 @aaa.user
+@codec.parse_params('domain', 'application', 'cartridge', project='[application]-[domain]', scale=False, app_args={})
 def post_create(user, domain, application, project, cartridge, scale, app_args):
 	'''Clone and bind project to application, creating any missing component.
 	'''
