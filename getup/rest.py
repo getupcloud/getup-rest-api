@@ -51,7 +51,7 @@ def post_create(user, domain, application, project, cartridge, scale, gear_profi
 	if not checklist['project'] or not checklist['application']:
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-	return projects.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale)
+	return projects.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale, gear_profile=gear_profile)
 
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
