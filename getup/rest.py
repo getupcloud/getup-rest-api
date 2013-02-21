@@ -7,7 +7,7 @@ import http
 import codec
 import gitlab
 import provider
-import project
+import projects
 from response import response
 
 #class StripPathMiddleware(object):
@@ -51,21 +51,21 @@ def post_create(user, domain, application, project, cartridge, scale, app_args):
 	if not checklist['project'] or not checklist['application']:
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-	return project.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale, **app_args)
+	return projects.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale, **app_args)
 
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
 def get_remotes(user, project):
 	'''List all project remotes.
 	'''
-	return project.list_remotes(user, project)
+	return projects.list_remotes(user, project)
 
 @bottle.get('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
 def get_remotes_remote(user, project, remote):
 	'''Retrieve project binding.
 	'''
-	return project.get_remote(user, project, remote)
+	return projects.get_remote(user, project, remote)
 
 @bottle.post('/getup/rest/projects/<project>/remotes')
 @aaa.user
@@ -74,14 +74,14 @@ def post_remotes(user, project):
 	'''
 	domain = request_params().get('domain')
 	application = request_params().get('application')
-	return project.add_remote(user=user, project=project, domain=domain, application=application)
+	return projects.add_remote(user=user, project=project, domain=domain, application=application)
 
 @bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user
 def delete_remotes_remote(user, project, remote):
 	'''Delete project binding.
 	'''
-	return project.del_remote(user, project, remote)
+	return projects.del_remote(user, project, remote)
 
 @bottle.post('/getup/rest/projects/<project>/clone', name='project_clone')
 @aaa.user
@@ -90,7 +90,7 @@ def post_clone(user, project):
 	'''
 	domain = request_params().get('domain')
 	application = request_params().get('application')
-	return project.clone_remote(user=user, project=project, domain=domain, application=application)
+	return projects.clone_remote(user=user, project=project, domain=domain, application=application)
 
 #
 # Gitlab system hooks
