@@ -33,7 +33,7 @@ def post_create(user):
 	}
 
 	checklist['project'] = gitlab.Gitlab().get_project(project).status_code == 404
-	checklist['domain'] = provider.OpenShift(user).get_dom(name=domain).status_code == 404
+	checklist['domain'] = provider.OpenShift(user).get_dom(name=domain).status_code == 200
 	checklist['application']  = provider.OpenShift(user).get_app(domain=domain, name=application).status_code == 404
 
 	if not all(checklist.values()):
