@@ -58,7 +58,7 @@ def user(func):
 	'''User authentication decorator.
 		Pass paramater 'user' into wrapped function.
 	'''
-	@wraps(func)
+	#@wraps(func)
 	def wrapper(*vargs, **kvargs):
 		app.config.user = _authenticate()
 		return func(user=app.config.user, *vargs, **kvargs)
