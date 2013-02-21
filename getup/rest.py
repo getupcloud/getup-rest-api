@@ -4,6 +4,7 @@
 import bottle
 import aaa
 import http
+import codec
 import gitlab
 import provider
 import project
@@ -30,7 +31,7 @@ def request_params():
 @bottle.post('/getup/rest/projects')
 @codec.parse_params('domain', 'application', 'cartridge', project='[application]-[domain]', scale=False, app_args={})
 @aaa.user
-def post_create(user, domain, application, project, cartridge, scale):
+def post_create(user, domain, application, project, cartridge, scale, app_args):
 	'''Clone and bind project to application, creating any missing component.
 	'''
 	scale = bool(scale)
