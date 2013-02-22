@@ -156,9 +156,13 @@ def create_project(user, project, domain, application, **app_args):
 
 	# clone and setup default remote
 	res = clone_remote(user, project, domain, application)
+	print '+'*10
+	print res
+	print res.body
 	add_report('clone', res)
 	if not res.ok:
-		return response(user, status=res.status_code, body=report)
+		res.body = report
+		return res
 	print 'Project cloned from application: %s-%s -> %s' % (application, domain, project)
 
 	return response(user, status=http.HTTP_CREATED, body=report)
