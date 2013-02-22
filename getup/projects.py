@@ -88,7 +88,7 @@ def _create_remote(user, project, domain, application, command='add'):
 
 	remote = '%(name)s-%(domain_id)s' % app_data
 	result = run_command(user, _cmd_create(command, project, remote, app_data['git_url']))
-	return response(user, status=http.HTTP_CREATED, body=result)
+	return response(user, status=result['status'], body=result)
 
 def _install_getup_key(user):
 	try:
@@ -136,7 +136,7 @@ def create_project(user, project, domain, application, **app_args):
 	if res.status_code == 404:
 		res = provider.OpenShift(user).add_dom(domain)
 		if not res.ok:
-			return response(user, status=res.status_code, body=res.json)
+			return response(user, status=res.status_code, body=report)
 
 	# create gitlab project
 	res = gitlab.Gitlab().add_project(name=project)
@@ -149,5 +149,9 @@ def create_project(user, project, domain, application, **app_args):
 		return response(user, status=res.status_code, body=res.json)
 
 	# clone and setup default remote
-	clone_remote(user, project, domain, application)
+	res = clone_remote(user, project, domain, application)
+	add_report('clone', res)
+	if not res.ok:
+		return response(user, status=res['status'], body=report)
+
 	return response(user, status=http.HTTP_CREATED, body=report)

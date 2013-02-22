@@ -121,7 +121,23 @@ class ResponseForbidden(APIResponse):
 	def __init__(self, **data):
 		APIResponse.__init__(self, status=http.HTTP_FORBIDDEN, headers={'WWW-Authenticate': _auth_method()}, **data)
 
-def response(user, res=None, status=None, body='', headers=None):
+#
+# Our response object builder
+#
+
+class HTTPResponse(bottle.HTTPResponse):
+	def __init__(self, body, status, user, res, *va, **kva):
+		super(HTTPResponse, self).__init__(body=body, status=status, *va, **kva)
+		# some handy stuff
+		self.request = res.request if res else None
+		self.user = user
+		self.ok = 200 >= self.status_code < 400
+		try:
+			self.json = json.loads(self.body)
+		except:
+			self.json = None
+
+def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', headers=None):
 	assert res is not None or status is not None, 'response: error: invalid parameters'
 	hdrs = { 'Cache-Control': 'no-cache' }
 	if res is not None:
@@ -141,10 +157,4 @@ def response(user, res=None, status=None, body='', headers=None):
 		body = data
 		hdrs['Content-Type'] = 'application/json'
 
-	resp = bottle.HTTPResponse(body=body, status=status_line, **hdrs)
-
-	if not hasattr(resp, 'request'):
-		setattr(resp, 'request', res.request if res else None)
-	if not hasattr(resp, 'user'):
-		setattr(resp, 'user', user)
-	return resp
+	return HTTPResponse(body=body, status=status_line, user=user, res=res, **hdrs)
