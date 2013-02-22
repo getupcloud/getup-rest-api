@@ -132,28 +132,32 @@ def create_project(user, project, domain, application, **app_args):
 
 	# create openshift domain
 	res = provider.OpenShift(user).get_dom(domain)
-	print 'get:', res
 	add_report('domain', res)
 	if not res.ok:
 		res = provider.OpenShift(user).add_dom(domain)
-		print 'post:', res
 		if not res.ok:
 			return response(user, status=res.status_code, body=report)
+		print 'Domain created:', domain
 
 	# create gitlab project
 	res = gitlab.Gitlab().add_project(name=project)
 	add_report('project', res)
+	if not res.ok:
+		return response(user, status=res.status_code, body=report)
+	print 'Project created:', project
 
 	# create openshift app
 	res = provider.OpenShift(user).add_app(domain=domain, name=application, **app_args)
 	add_report('application', res)
 	if not res.ok:
 		return response(user, status=res.status_code, body=res.json)
+	print 'Application created: %s-%s' (application, domain)
 
 	# clone and setup default remote
 	res = clone_remote(user, project, domain, application)
 	add_report('clone', res)
 	if not res.ok:
-		return response(user, status=res['status'], body=report)
+		return response(user, status=res.status_code, body=report)
+	print 'Project clone from application: %s-%s -> %s' (application, domain, project)
 
 	return response(user, status=http.HTTP_CREATED, body=report)
