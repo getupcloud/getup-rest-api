@@ -132,9 +132,11 @@ def create_project(user, project, domain, application, **app_args):
 
 	# create openshift domain
 	res = provider.OpenShift(user).get_dom(domain)
+	print 'get:', res
 	add_report('domain', res)
-	if res.status_code == 404:
+	if not res.ok:
 		res = provider.OpenShift(user).add_dom(domain)
+		print 'post:', res
 		if not res.ok:
 			return response(user, status=res.status_code, body=report)
 
