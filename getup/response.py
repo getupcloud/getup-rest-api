@@ -133,14 +133,10 @@ class HTTPResponse(bottle.HTTPResponse):
 		self.user = user
 		self.ok = 200 >= self.status_code < 400
 		try:
-			print 'load json', self.body
-			if hasattr(self.body.read):
-				self.json = json.loads(self.body.read())
-			else:
-				self.json = json.loads(self.body)
-			print 'load json, ok', self.json
+			self.json = json.loads(self.body.read())
+		except AttributeError:
+			self.json = json.loads(self.body)
 		except:
-			print 'load json, err'
 			self.json = None
 
 def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', headers=None):
@@ -160,7 +156,7 @@ def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', he
 		data = StringIO.StringIO()
 		json.dump(body, data, indent=3)
 		data.seek(0)
-		body = data
+		body = data.read()
 		hdrs['Content-Type'] = 'application/json'
 
 	return HTTPResponse(body=body, status=status_line, user=user, res=res, **hdrs)

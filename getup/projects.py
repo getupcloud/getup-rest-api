@@ -156,9 +156,6 @@ def create_project(user, project, domain, application, **app_args):
 
 	# clone and setup default remote
 	res = clone_remote(user, project, domain, application)
-	print '+'*10
-	print res
-	print res.body
 	add_report('clone', res)
 	if not res.ok:
 		res.body = report
