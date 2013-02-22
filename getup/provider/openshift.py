@@ -23,7 +23,7 @@ class OpenShift(Provider):
 		return self.api(path if path else '')
 
 	def add_dom(self, name, **kvargs):
-		return self.api.domains.POST(verify=False, data={ 'id': name }, **kvargs)
+		return self.api.broker.rest.domains.POST(verify=False, data={ 'id': name }, **kvargs)
 
 	def get_dom(self, name, **kvargs):
 		return self.api.broker.rest.domains(name).GET(verify=False, **kvargs)
