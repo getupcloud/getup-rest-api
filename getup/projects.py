@@ -19,29 +19,25 @@ def _cmd_del(project, name):
 	return '%s del %s %s' % (app.config.webgit['remotes_bin'], project, name)
 
 def run_command(user, cmd):
-	def parse_command_result(res):
-		try:
-			output = json.loads(res.stdout)
-		except:
-			print "Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd)
-			print '--- stdout'
-			print res.stdout
-			print '--- stderr'
-			print res.stderr
-			print '--- status: %i' % res.returncode;
-			raise Exception("Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
+	try:
+		output = json.loads(gitlab.SSHClient().run(cmd).stdout)
 
 		if 'status' not in output:
-			raise Exception("Invalid result from command: missing 'status' field")
+			raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body="Invalid result from command: missing 'status' field")
+		if 200 > output['status'] >= 400:
+			raise response(user, status=output['status'], body=output.get('data'))
 
 		return output
-
-	try:
-		result = parse_command_result(gitlab.SSHClient().run(cmd))
-		if 200 > result['status'] >= 400:
-			raise response(user, status=result['status'], body=result['data'])
-		return result
+	except ValueError, ex:
+		print 'Failure parsing command output: %s' % ex
+		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
 	except Exception, ex:
+		print "Failure executing command: '%s' with status=%i" % (cmd, res.retcode)
+		print '--- stdout'
+		print res.stdout
+		print '--- stderr'
+		print res.stderr
+		print '---'
 		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
 
 def _get_remotes(user, project):
@@ -57,7 +53,7 @@ def list_remotes(user, project):
 		return response(user, status=http.HTTP_UNPROCESSABLE_ENTITY)
 
 	remotes = _get_remotes(user, project)
-	return response(user, status=http.HTTP_OK, body=remotes)
+	return response(user, status=remotes['status'], body=remotes)
 
 def get_remote(user, project, remote):
 	if not all([user, project, remote]):
@@ -73,22 +69,21 @@ def get_remote(user, project, remote):
 
 def _create_remote(user, project, domain, application, command='add'):
 	if not all([user, project, domain, application]):
-		return response(user, status=http.HTTP_UNPROCESSABLE_ENTITY)
+		raise response(user, status=http.HTTP_UNPROCESSABLE_ENTITY)
 
 	# retrieve openshift app
 	res = provider.OpenShift(user).get_app(domain=domain, name=application)
 	if not res.ok:
-		return response(user, res)
+		raise response(user, res)
 	app_data = res.json['data']
 
 	# retrieve gitlab project
 	res = gitlab.Gitlab().get_project(project)
 	if not res.ok:
-		return response(user, res)
+		raise response(user, res)
 
 	remote = '%(name)s-%(domain_id)s' % app_data
-	result = run_command(user, _cmd_create(command, project, remote, app_data['git_url']))
-	return response(user, status=result['status'], body=result)
+	return run_command(user, _cmd_create(command, project, remote, app_data['git_url']))
 
 def _install_getup_key(user):
 	try:
@@ -107,11 +102,13 @@ def _install_getup_key(user):
 
 def clone_remote(user, project, domain, application):
 	_install_getup_key(user)
-	return _create_remote(user, project, domain, application, 'clone')
+	res = _create_remote(user, project, domain, application, 'clone')
+	return response(user, status=res['status'], body=res)
 
 def add_remote(user, project, domain, application):
 	_install_getup_key(user)
-	return _create_remote(user, project, domain, application, 'add')
+	res = _create_remote(user, project, domain, application, 'add')
+	return response(user, status=res['status'], body=res)
 
 def del_remote(user, project, remote):
 	if not all([user, project, remote]):
