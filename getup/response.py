@@ -133,8 +133,11 @@ class HTTPResponse(bottle.HTTPResponse):
 		self.user = user
 		self.ok = 200 >= self.status_code < 400
 		try:
+			print 'load json', self.body
 			self.json = json.loads(self.body)
+			print 'load json, ok'
 		except:
+			print 'load json, err'
 			self.json = None
 
 def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', headers=None):
