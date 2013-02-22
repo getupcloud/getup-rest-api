@@ -131,7 +131,7 @@ class HTTPResponse(bottle.HTTPResponse):
 		# some handy stuff
 		self.request = res.request if res else None
 		self.user = user
-		self.ok = 200 >= self.status_code < 400
+		self.ok = 400 > self.status_code >= 200
 		try:
 			self.json = json.loads(body.read())
 		except AttributeError:
