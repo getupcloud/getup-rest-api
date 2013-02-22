@@ -6,6 +6,7 @@ import provider
 import http
 import gitlab
 from response import response
+from datetime import datetime
 
 app = bottle.app()
 
@@ -20,7 +21,8 @@ def _cmd_del(project, name):
 
 def run_command(user, cmd):
 	try:
-		output = json.loads(gitlab.SSHClient().run(cmd).stdout)
+		cmd_result = gitlab.SSHClient().run(cmd)
+		output = json.loads(cmd_result.stdout)
 
 		if 'status' not in output:
 			raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body="Invalid result from command: missing 'status' field")
@@ -32,11 +34,11 @@ def run_command(user, cmd):
 		print 'Failure parsing command output: %s' % ex
 		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
 	except Exception, ex:
-		print "Failure executing command: '%s' with status=%i" % (cmd, res.retcode)
+		print "Failure executing command: '%s' with status=%i" % (cmd, cmd_result.retcode)
 		print '--- stdout'
-		print res.stdout
+		print cmd_result.stdout
 		print '--- stderr'
-		print res.stderr
+		print cmd_result.stderr
 		print '---'
 		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
 
@@ -123,40 +125,49 @@ def del_remote(user, project, remote):
 	return response(user, status=result['status'], body=result)
 
 def create_project(user, project, domain, application, **app_args):
+	start_time = datetime.utcnow().ctime()
+
 	report = []
-	def add_report(what, res):
-		report.append({what: {'status': res.status_code, 'content': res.json }})
+	def add_report(action, description, **kva):
+		r = { 'action': action, 'description': description }
+		if 'res' in kva:
+			r.update(status=res.status_code, content=res.json)
+			kva.pop('res')
+		r.update(kva)
+		report.append(r)
 
 	# create openshift domain
 	res = provider.OpenShift(user).get_dom(domain)
-	add_report('domain', res)
 	if not res.ok:
 		res = provider.OpenShift(user).add_dom(domain)
 		if not res.ok:
-			add_report('domain', res)
+			add_report('domain', 'Creating domain', res=res)
 			return response(user, status=res.status_code, body=report)
+	else:
+		add_report('domain', 'Using existing domain', res=res)
 		print 'Domain created:', domain
 
 	# create gitlab project
 	res = gitlab.Gitlab().add_project(name=project)
-	add_report('project', res)
+	add_report('project', 'Create fresh project repository', res=res)
 	if not res.ok:
 		return response(user, status=res.status_code, body=report)
 	print 'Project created:', project
 
 	# create openshift app
 	res = provider.OpenShift(user).add_app(domain=domain, name=application, **app_args)
-	add_report('application', res)
+	add_report('application', 'Create fresh openshift application', res=res)
 	if not res.ok:
 		return response(user, status=res.status_code, body=res.json)
 	print 'Application created: %s-%s' % (application, domain)
 
 	# clone and setup default remote
 	res = clone_remote(user, project, domain, application)
-	add_report('clone', res)
+	add_report('clone', 'Clone and setup application code into project repository', res=res)
 	if not res.ok:
 		res.body = report
 		return res
 	print 'Project cloned from application: %s-%s -> %s' % (application, domain, project)
 
+	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
