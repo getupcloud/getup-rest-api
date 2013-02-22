@@ -21,9 +21,7 @@ def _cmd_del(project, name):
 def run_command(user, cmd):
 	def parse_command_result(res):
 		try:
-			ns = {}
-			exec 'output=%s' % res.stdout in ns
-			output = ns['output']
+			output = json.loads(res.stdout)
 		except:
 			print "Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd)
 			print '--- stdout'
@@ -32,8 +30,10 @@ def run_command(user, cmd):
 			print res.stderr
 			print '--- status: %i' % res.returncode;
 			raise Exception("Unexpected result from command: type=%s (%s)" % (type(res.stdout), cmd))
+
 		if 'status' not in output:
 			raise Exception("Invalid result from command: missing 'status' field")
+
 		return output
 
 	try:
@@ -136,6 +136,7 @@ def create_project(user, project, domain, application, **app_args):
 	if not res.ok:
 		res = provider.OpenShift(user).add_dom(domain)
 		if not res.ok:
+			add_report('domain', res)
 			return response(user, status=res.status_code, body=report)
 		print 'Domain created:', domain
 
@@ -158,6 +159,6 @@ def create_project(user, project, domain, application, **app_args):
 	add_report('clone', res)
 	if not res.ok:
 		return response(user, status=res.status_code, body=report)
-	print 'Project clone from application: %s-%s -> %s' % (application, domain, project)
+	print 'Project cloned from application: %s-%s -> %s' % (application, domain, project)
 
 	return response(user, status=http.HTTP_CREATED, body=report)

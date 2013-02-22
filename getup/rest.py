@@ -83,7 +83,7 @@ def delete_remotes_remote(user, project, remote):
 	'''
 	return projects.del_remote(user, project, remote)
 
-@bottle.post('/getup/rest/projects/<project>/clone', name='project_clone')
+@bottle.post('/getup/rest/projects/<project>/clone')
 @aaa.user
 def post_clone(user, project):
 	'''Clone and bind project to application.
