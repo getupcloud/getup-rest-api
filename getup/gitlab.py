@@ -7,28 +7,28 @@ import json, os
 app = bottle.app()
 
 def user(userid=None, token=None):
-	hdr = { app.config.webgit['token_header']: token or app.config.user.authentication_token }
-	users = Hammock('https://' + app.config.webgit['hostname'], headers=hdr).users
+	hdr = { app.config.webgit.token_header: token or app.config.user.authentication_token }
+	users = Hammock('https://' + app.config.webgit.hostname, headers=hdr).users
 	if userid:
 		u = users.GET(userid).json
 		u['keys'] = user.keys.GET(verify=False).json
 		return [ u ]
 	else:
-		users = Hammock('https://' + app.config.webgit['hostname'], headers=hdr).users
+		users = Hammock('https://' + app.config.webgit.hostname, headers=hdr).users
 	return users.GET(verify=False).json
 
 def session(body):
-	gitlab = Hammock('https://' + app.config.webgit['hostname'])
+	gitlab = Hammock('https://' + app.config.webgit.hostname)
 	hdrs = {'Content-Type': 'application/json'}
 	return gitlab.api.v2.session.POST(verify=False, data=body, headers=hdrs)
 
 class Gitlab:
 	def __init__(self):
 		self.headers = {
-			app.config.webgit['token_header']: app.config.user['authentication_token'],
+			app.config.webgit.token_header: app.config.user.authentication_token,
 			'Content-Type': 'application/json',
 		}
-		self.api = Hammock('https://' + app.config.webgit['hostname'].rstrip('/'), headers=self.headers)
+		self.api = Hammock('https://' + app.config.webgit.hostname.rstrip('/'), headers=self.headers)
 
 	def __getattr__(self, name):
 		return getattr(self.api, name)

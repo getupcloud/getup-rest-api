@@ -11,13 +11,13 @@ from datetime import datetime
 app = bottle.app()
 
 def _cmd_list(project):
-	return '%s list %s' % (app.config.webgit['remotes_bin'], project)
+	return '%s list %s' % (app.config.webgit.remotes_bin, project)
 
 def _cmd_create(cmd, project, name, url):
-	return '%s %s %s %s "%s"' % (app.config.webgit['remotes_bin'], cmd, project, name, url)
+	return '%s %s %s %s "%s"' % (app.config.webgit.remotes_bin, cmd, project, name, url)
 
 def _cmd_del(project, name):
-	return '%s del %s %s' % (app.config.webgit['remotes_bin'], project, name)
+	return '%s del %s %s' % (app.config.webgit.remotes_bin, project, name)
 
 def run_command(user, cmd):
 	try:
@@ -89,7 +89,7 @@ def _create_remote(user, project, domain, application, command='add'):
 
 def _install_getup_key(user):
 	try:
-		with open(app.config.webgit['pubkey_file']) as fp:
+		with open(app.config.webgit.pubkey_file) as fp:
 			prov = provider.OpenShift(user)
 			for i, key in enumerate(filter(lambda l: l.split(), fp.readlines())):
 				if key[0].startswith('#'):
