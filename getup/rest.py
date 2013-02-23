@@ -30,12 +30,12 @@ def request_params():
 #
 @bottle.post('/getup/rest/projects')
 @aaa.user
-@codec.parse_params('domain', 'application', 'cartridge', project='[application]-[domain]', scale=False, gear_profile='production')
-def post_create(user, domain, application, project, cartridge, scale, gear_profile):
+@codec.parse_params('domain', 'application', 'cartridge', project='', scale=False)
+def post_create(user, domain, application, project, cartridge, scale):
 	'''Clone and bind project to application, creating any missing component.
 	'''
 	scale = bool(scale)
-	if project == '[application]-[domain]':
+	if not project:
 		project = '%s-%s' % (application, domain)
 
 	checklist = {
@@ -51,7 +51,8 @@ def post_create(user, domain, application, project, cartridge, scale, gear_profi
 	if not checklist['project'] or not checklist['application']:
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-	return projects.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale, gear_profile=gear_profile)
+	return projects.create_project(user=user, project=project, domain=domain, application=application,
+		cartridge=cartridge, scale=scale, gear_profile=app.config.provider.openshift.gear_profile)
 
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
