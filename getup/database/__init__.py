@@ -3,7 +3,6 @@
 import bottle
 #from bottle.ext import sqlalchemy
 from sqlalchemy import text, MetaData, Table, Column, Integer, String, TIMESTAMP, BOOLEAN
-from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from engine import make_engine
 import sqlalchemy.ext
@@ -42,6 +41,7 @@ Accounting = Users = Keys = None
 def _create_table(engine, *tables):
 	for table in tables:
 		if not engine.has_table(table.__tablename__):
+			print '## Creating table: %s' % table.__tablename__
 			table.metadata.create_all(engine)
 
 def start(app):

@@ -1,250 +1,167 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys, time, logging
 import bottle
-import config, database, http
-import aaa, api, response
+import aaa
+import http
+import codec
+import gitlab
+import provider
+import projects
+from response import response
+
+#class StripPathMiddleware(object):
+#	def __init__(self, app):
+#		self.app = app
+#	def __call__(self, e, h):
+#		e['PATH_INFO'] = e['PATH_INFO'].rstrip('/')
+#		return self.app(e,h)
+#
+#app = bottle.app()
+#app = StripPathMiddleware(app)
 
 app = bottle.default_app()
 
-ALL_METHODS = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']
-
-@bottle.hook('before_request')
-def startup():
-	app.config.user = None
-	bottle.response.headers['Cache-Control'] = 'no-cache'
-	#print time.time(),'-', bottle.request.method, bottle.request.path
-
-@bottle.hook('after_request')
-def teardown():
-	app.config.user = None
-	#print time.time(),'-', bottle.response.status_code
-
-def _method(handler, *vargs, **kvargs):
-	name = bottle.request.method
-	if name.lower() == 'head':
-		name = 'get'
-	method = getattr(handler, name.lower(), None) or getattr(handler, name.upper(), None)
-	if method is None:
-		raise response.ResponseMethodNotAllowed()
-	return method(*vargs, **kvargs)
+def request_params():
+	return bottle.request.json or bottle.request.params
 
 #
-# Main entry point
+# Binding Project <-> App
 #
-#TODO: return subsystems entry points
-@bottle.route('/')
-def handle_root():
-	'''Root handler
+@bottle.post('/getup/rest/projects')
+@aaa.user
+@codec.parse_params('domain', 'application', 'cartridge', project='[application]-[domain]', scale=False, gear_profile='production')
+def post_create(user, domain, application, project, cartridge, scale, gear_profile):
+	'''Clone and bind project to application, creating any missing component.
 	'''
-	return _method(api)
+	scale = bool(scale)
+	if project == '[application]-[domain]':
+		project = '%s-%s' % (application, domain)
 
-@bottle.get('/status')
-@aaa.admin_user
-def handle_status():
-	'''System status and config
-	'''
-	return _method(api.status)
+	checklist = {
+		'project': False,
+		'domain': False,
+		'application': False,
+	}
 
-#
-# Broker domains
-#
-@bottle.route('/broker/rest/domains',  method=ALL_METHODS)
-@aaa.valid_user
-def handle_domains(**kvargs):
-	'''Broker domains administration.
-	'''
-	if bottle.request.method.upper() == 'POST':
-		return _method(api.broker.domain, path=bottle.request.path)
-	else:
-		return _method(api.broker, path=bottle.request.path)
+	checklist['project'] = gitlab.Gitlab().get_project(project).status_code == 404
+	checklist['domain'] = provider.OpenShift(user).get_dom(name=domain).status_code == 200
+	checklist['application']  = provider.OpenShift(user).get_app(domain=domain, name=application).status_code == 404
 
-@bottle.route('/broker/rest/domains/<domain>',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/', method=ALL_METHODS)
-@aaa.valid_user
-def handle_domain(**kvargs):
-	'''Broker domain administration.
-	'''
-	return _method(api.broker.domain, path=bottle.request.path)
+	if not checklist['project'] or not checklist['application']:
+		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-##TODO: account
-#
-# Broker aplications
-#
-@bottle.route('/broker/rest/domains/<domain>/applications',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/', method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/', method=ALL_METHODS)
-def handle_app(**kvargs):
-	'''Broker application administration.
-	'''
-	if bottle.request.method.upper() == 'POST':
-		return _method(api.broker.app, path=bottle.request.path)
-	elif bottle.request.method.upper() == 'DELETE':
-		return _method(api.broker.app, path=bottle.request.path, domain_id=kvargs['domain'], app_name=kvargs['name'])
-	else:
-		return _method(api.broker, path=bottle.request.path)
+	return projects.create_project(user=user, project=project, domain=domain, application=application, cartridge=cartridge, scale=scale, gear_profile=gear_profile)
 
-##TODO: account
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/events',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/events/', method=ALL_METHODS)
-@aaa.valid_user
-def handle_events_app(**kvargs):
-	'''Broker application events.
+@bottle.get('/getup/rest/projects/<project>/remotes')
+@aaa.user
+def get_remotes(user, project):
+	'''List all project remotes.
 	'''
-	return _method(api.broker, path=bottle.request.path)
+	return projects.list_remotes(user, project)
 
-#
-# Broker cartridges
-#
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/', method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/', method=ALL_METHODS)
-@aaa.valid_user
-def handle_cart(**kvargs):
-	'''Broker cartridge administration.
+@bottle.get('/getup/rest/projects/<project>/remotes/<remote>')
+@aaa.user
+def get_remotes_remote(user, project, remote):
+	'''Retrieve project binding.
 	'''
-	return _method(api.broker, path=bottle.request.path)
+	return projects.get_remote(user, project, remote)
 
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events',  method=ALL_METHODS)
-@bottle.route('/broker/rest/domains/<domain>/applications/<name>/cartridges/<cart>/events/', method=ALL_METHODS)
-@aaa.valid_user
-def handle_events_cart(**kvargs):
-	'''Broker cartridge events.
+@bottle.post('/getup/rest/projects/<project>/remotes')
+@aaa.user
+def post_remotes(user, project):
+	'''Bind project to application.
 	'''
-	return _method(api.broker, path=bottle.request.path)
+	domain = request_params().get('domain')
+	application = request_params().get('application')
+	return projects.add_remote(user=user, project=project, domain=domain, application=application)
 
-#
-# Broker user keys
-#
-@bottle.route('/broker/rest/user/keys',          method=ALL_METHODS)
-@bottle.route('/broker/rest/user/keys/',         method=ALL_METHODS)
-@bottle.route('/broker/rest/user/keys/<keyname>',   method=ALL_METHODS)
-@bottle.route('/broker/rest/user/keys/<keyname>/',  method=ALL_METHODS)
-@aaa.valid_user
-def handle_broker_keys(keyname=None):
-	'''Broker keys administration.
-	Garantees a single key to spread to all backends.
+@bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
+@aaa.user
+def delete_remotes_remote(user, project, remote):
+	'''Delete project binding.
 	'''
-	if bottle.request.method.upper() == 'POST':
-		return _method(api.broker.keys, path=bottle.request.path)
-	elif bottle.request.method.upper() in [ 'PUT', 'DELETE' ]:
-		return _method(api.broker.keys, keyname=keyname, path=bottle.request.path)
-	else:
-		return _method(api.broker, path=bottle.request.path)
+	return projects.del_remote(user, project, remote)
 
-#
-# Broker passthru
-#
-@bottle.route('/broker/<path:path>', method=ALL_METHODS)
-@aaa.valid_user
-def handle_broker(path=None):
-	'''Broker everything else
+@bottle.post('/getup/rest/projects/<project>/clone')
+@aaa.user
+def post_clone(user, project):
+	'''Clone and bind project to application.
 	'''
-	return _method(api.broker, path=bottle.request.path)
-
-#
-# Gitlab current user
-#
-@bottle.route('/api/v2/user',               method=ALL_METHODS)
-@bottle.route('/api/v2/user/',              method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys/',         method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys',          method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys/<keyid>',  method=ALL_METHODS)
-@bottle.route('/api/v2/user/keys/<keyid>/', method=ALL_METHODS)
-@aaa.valid_user
-def handle_user(keyid=None):
-	'''Gitlab user (owner) administration
-	Garantees a single key to spread to all backends.
-	'''
-	if keyid is not None:
-		return _method(api.gitlab.user, keyid=keyid, path=bottle.request.path)
-	else:
-		return _method(api.gitlab.user, path=bottle.request.path)
-
-#
-# Gitlab users admin
-#
-@bottle.route('/api/v2/users',  method=ALL_METHODS)
-@bottle.route('/api/v2/users/', method=ALL_METHODS)
-@aaa.admin_user
-def handle_current_user():
-	'''Gitlab current user administration
-	'''
-	return _method(api.gitlab.users, path=bottle.request.path)
-
-@bottle.route('/api/v2/users/<name>',  method=ALL_METHODS)
-@bottle.route('/api/v2/users/<name>/', method=ALL_METHODS)
-@aaa.admin_user
-def handle_user(name):
-	'''Gitlab user administration
-	'''
-	return _method(api.gitlab.users, name=name, path='/api/v2/users', userid=name)
-
-#
-# Gitlab user session
-#
-@bottle.route('/api/v2/session', method=ALL_METHODS)
-def handle_user(**kvargs):
-	'''Gitlab user session (auth via password, not token)
-	'''
-	return _method(api.gitlab.session)
-
-#
-# Gitlab passthru
-#
-@bottle.route('/api/v2/<path:path>', method=ALL_METHODS)
-@aaa.valid_user
-def handle_user(**kvargs):
-	'''Gitlab everything else
-	'''
-	return _method(api.gitlab, path=bottle.request.path)
+	domain = request_params().get('domain')
+	application = request_params().get('application')
+	return projects.clone_remote(user=user, project=project, domain=domain, application=application)
 
 #
 # Gitlab system hooks
 #
 @bottle.post('/gitlab/hook')
-@aaa.admin_user
-def handle_gitlab_hook():
-	'''Handler for gitlab system hooks
-	'''
-	return _method(api.gitlab.hook)
+@aaa.user
+def handler_gitlab_hook():
+	return 'OK'
 
 #
-# Binding Project <-> App
+# Broker callbacks
 #
-@bottle.route('/bindings/domains/<domain>/applications/<name>/projects', method=ALL_METHODS)
-@aaa.valid_user
-def handle_targets(domain, name):
-	'''
-	'''
-	return _method(api.bindings, domain=domain, name=name)
+def response_status(*statuses):
+	class ResponseStatusDecorator:
+		def __init__(self, func):
+			self.statuses = statuses
+			self.func = func
+		def __call__(self, *va, **kva):
+			try:
+				status = int(bottle.request.headers['X-Response-Status'])
+			except (ValueError, KeyError):
+				raise bottle.HTTPResponse(status=500, body='Invalid or missing header: X-Response-Status')
 
-#
-# Accouting
-#
-@bottle.post('/accounting/<username>')
-@aaa.admin_user
-def handle_accounting(username):
-	'''Accouting created gear.
-	'''
-	return _method(api.acct, username=username)
+			if status not in self.statuses:
+				raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
+			return self.func(*va, **kva)
+	return ResponseStatusDecorator
 
-@bottle.delete('/accounting/<username>/<appname>')
-@aaa.admin_user
-def handle_accounting(username, appname):
-	'''Accouting deleted gear.
-	'''
-	return _method(api.acct, username=username, appname=appname)
+@bottle.post('/broker/rest/domains/<domain>/applications')
+@response_status(201)
+@aaa.user
+def post_application(user, domain):
+	aaa.create_app(user, domain, request_params())
+	return 'OK'
+
+@bottle.delete('/broker/rest/domains/<domain>/applications/<application>')
+@response_status(204)
+@aaa.user
+def delete_application(user, domain, application):
+	aaa.delete_app(user, domain, application)
+	return 'OK'
+
+@bottle.post('/broker/rest/domains/<domain>/applications/<application>/events')
+@response_status(200)
+@aaa.user
+def application_events(user, domain, application):
+	aaa.scale_app(user, domain, application, request_params())
+	return 'OK'
+
+@bottle.post('/broker/rest/domains/<domain>/applications/<application>/cartridges')
+@response_status(201)
+@aaa.user
+def post_application_cartridges(user, domain, application):
+	aaa.create_gear(user, domain, application, request_params())
+	return 'OK'
+
+@bottle.delete('/broker/rest/domains/<domain>/applications/<application>/cartridges/<cartridge>')
+@response_status(200)
+@aaa.user
+def delete_application_cartridges(user, domain, application, cartridge):
+	aaa.delete_gear(user, domain, application, cartridge)
+	return 'OK'
 
 #
 # Health check
 #
 @bottle.get('/health_check')
 def handle_health_check():
-	'''Simple healthcheck
+	'''Simple health check
 	'''
+	if 'X-Response-Status' in bottle.request.headers:
+		print '%s: X-Response-Status: %s' % (bottle.request.path, bottle.request.headers['X-Response-Status'])
 	bottle.response.content_type = 'text/plain'
-	return 'OK'
+	return 'OK\n'

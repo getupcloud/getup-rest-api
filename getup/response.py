@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import bottle
-import requests
-from getup import http, proto
+import http
+import proto
+import json
+import StringIO
 
 class Exposable:
 	_expose = []
@@ -42,8 +44,8 @@ class APIResponse(bottle.HTTPResponse):
 		}
 		if isinstance(description, basestring):
 			body['status']['description'] = description
-		from getup import codec
-		body = codec.json_codec.encode(body)
+		headers['Status'] = code
+		body = json.dumps(body)
 		bottle.HTTPResponse.__init__(self, body=body, status=status, header={'Content-Type': 'application/json'}, **headers)
 
 class ResponseInternalServerError(APIResponse):
@@ -119,7 +121,25 @@ class ResponseForbidden(APIResponse):
 	def __init__(self, **data):
 		APIResponse.__init__(self, status=http.HTTP_FORBIDDEN, headers={'WWW-Authenticate': _auth_method()}, **data)
 
-def response(user, res=None, status=None, body='', headers=None):
+#
+# Our response object builder
+#
+
+class HTTPResponse(bottle.HTTPResponse):
+	def __init__(self, body, status, user, res, *va, **kva):
+		super(HTTPResponse, self).__init__(body=body, status=status, *va, **kva)
+		# some handy stuff
+		self.request = res.request if res else None
+		self.user = user
+		self.ok = 400 > self.status_code >= 200
+		try:
+			self.json = json.loads(body.read())
+		except AttributeError:
+			self.json = json.loads(body)
+		except:
+			self.json = None
+
+def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', headers=None):
 	assert res is not None or status is not None, 'response: error: invalid parameters'
 	hdrs = { 'Cache-Control': 'no-cache' }
 	if res is not None:
@@ -132,10 +152,11 @@ def response(user, res=None, status=None, body='', headers=None):
 	if headers:
 		hdrs.update(headers)
 
-	resp = bottle.HTTPResponse(body=body, status=status_line, **hdrs)
+	if isinstance(body, (dict, list, tuple)):
+		data = StringIO.StringIO()
+		json.dump(body, data, indent=3)
+		data.seek(0)
+		body = data.read()
+		hdrs['Content-Type'] = 'application/json'
 
-	if not hasattr(resp, 'request'):
-		setattr(resp, 'request', res.request if res else None)
-	if not hasattr(resp, 'user'):
-		setattr(resp, 'user', user)
-	return resp
+	return HTTPResponse(body=body, status=status_line, user=user, res=res, **hdrs)

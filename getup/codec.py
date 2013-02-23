@@ -5,6 +5,13 @@ from json import loads as json_loads, dumps as json_dumps
 import ast
 import response
 
+def as_bool(value):
+	if value.lower() in [ 'false', 'no', '0' ]:
+		return False
+	elif value.lower() in [ 'true', 'yes', '1' ]:
+		return True
+	return None
+
 class Codec:
 	def __init__(self):
 		pass
@@ -29,7 +36,7 @@ class JsonCodec(Codec):
 
 class FormURLCodec(Codec):
 	def encode(self, **data):
-		raise NotImplemented
+		raise NotImplementedError
 
 	def decode(self, data=None):
 		return bottle.request.params
@@ -58,7 +65,7 @@ def decode(codec, varname='request_data'):
 		def __init__(self, wrapped):
 			try:
 				self._codec = codec['codec']
-			except TypeErro:
+			except TypeError:
 				self._codec = codec
 			self._wrapped = wrapped
 			self._varname = varname
@@ -111,6 +118,8 @@ def parse_params(*mandatory, **optional):
 				# default is json from bottle
 				if bottle.request.json:
 					request_data = bottle.request.json
+				elif bottle.request.params:
+					request_data = dict(bottle.request.params)
 				else:
 					raise response.ResponseInternalServerError(description='Invalid content (missing codec?)')
 			params = {}
@@ -126,13 +135,18 @@ def parse_params(*mandatory, **optional):
 
 				try:
 					_p = self._params_optional[k]
-					_v = ast.literal_eval(v)
+					if isinstance(_p, bool):
+						_v = as_bool(v)
+						if _v is None:
+							raise response.ResponseInvalidParameterType(k, self._params_mandatory, self._params_optional)
+					else:
+						_v = ast.literal_eval(v)
 					# enforce same types
 					if _v is not None and type(_v) != type(_p):
 						raise response.ResponseInvalidParameterType(k, self._params_mandatory, self._params_optional)
 				except KeyError:
 					_v = v
-				except SyntaxError:
+				except (SyntaxError, ValueError):
 					raise response.ResponseInvalidParameter(k, self._params_mandatory, self._params_optional)
 
 				params[k] = _v

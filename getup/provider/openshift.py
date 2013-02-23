@@ -9,27 +9,40 @@ from getup import http, response
 app = bottle.default_app()
 
 class OpenShift(Provider):
-	def __init__(self, username, password, default_domain=None):
+	def __init__(self, user, default_domain=None):
 		Provider.__init__(self,
 			name='OpenShift',
 			base_url='https://' + app.config.provider['openshift']['hostname'].rstrip('/'),
-			auth=(username, password))
+			auth=(user['email'], user['authentication_token']))
 		self.default_domain = default_domain
 
 	def version(self):
-		return self.api.api.GET().json.get('version')
+		return self.api.api.GET(verify=False).json.get('version')
 
 	def __call__(self, path):
 		return self.api(path if path else '')
 
+	def add_dom(self, name, **kvargs):
+		return self.api.broker.rest.domains.POST(verify=False, data={ 'id': name }, **kvargs)
+
+	def get_dom(self, name, **kvargs):
+		return self.api.broker.rest.domains(name).GET(verify=False, **kvargs)
+
+	def add_app(self, domain, name, cartridge, scale=False, gear_profile=None, **kvargs):
+		data = { 'name': name, 'cartridge': cartridge, 'scale': scale }
+		if gear_profile:
+			data.update(gear_profile=gear_profile)
+		return self.api.broker.rest.domains(domain).applications.POST(verify=False, data=data, **kvargs)
+
 	def get_app(self, domain, name, **kvargs):
-		return self.api.broker.rest.domains(domain).applications(name).GET(**kvargs)
+		return self.api.broker.rest.domains(domain).applications(name).GET(verify=False, **kvargs)
 
 	def add_key(self, name, type, content, **kvargs):
-		return self.api.broker.rest.user.keys.POST(data={'name': name, 'type': type, 'content': content}, **kvargs)
+		data = { 'name': name, 'type': type, 'content': content }
+		return self.api.broker.rest.user.keys.POST(verify=False, data=data, **kvargs)
 
 	def del_key(self, name, **kvargs):
-		return self.api.broker.rest.user.keys(name).DELETE(**kvargs)
+		return self.api.broker.rest.user.keys(name).DELETE(verify=False, **kvargs)
 
 """
 	#
@@ -60,7 +73,7 @@ class OpenShift(Provider):
 	def create_domain(self, name):
 		'''Create a new domain. Returns a Domain instance or raise on error.
 		'''
-		res = self.api.domains.POST(data={'id': name})
+		res = self.api.domains.POST(verify=False, data={ 'id': name })
 		if res.ok:
 			return Domain(self. api, res)
 		errors = {
@@ -70,7 +83,7 @@ class OpenShift(Provider):
 		raise error.make(res, errors, resource=name)
 
 	def delete_domain(self, name):
-		res = self.api.domains(name).DELETE(data={'force': False})
+		res = self.api.domains(name).DELETE(verify=False, data={'force': False})
 		return res, res.json
 		#self.assert_response(res, [200, 204])
 
@@ -101,7 +114,7 @@ class OpenShift(Provider):
 			'cartridge': framework,
 			'scale': True,
 		}
-		res = self.api.domains(domain).applications.POST(data=params)
+		res = self.api.domains(domain).applications.POST(verify=False, data=params)
 		if res.ok:
 			return App(self.api, res)
 		errors = {
@@ -127,7 +140,7 @@ class OpenShift(Provider):
 		domain = domain or self.default_domain
 		assert domain, 'missing domain name (no default value)'
 
-		res = self.api.domains(domain).applications(name).DELETE()
+		res = self.api.domains(domain).applications(name).DELETE(verify=False)
 		if res.ok:
 			return None
 		print res
