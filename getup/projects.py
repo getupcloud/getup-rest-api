@@ -101,7 +101,7 @@ def _install_getup_key(user):
 				type, content, name = key.split()[:2] + [ 'getupcloud%i' % i ]
 				res = prov.add_key(name=name, content=content, type=type)
 				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT ]:
-					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.reason)
+					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.raw.reason)
 				print 'installed getup pub-key: %s/%s %s...%s' % (type, name, content[:6], content[-6:])
 	except Exception, ex:
 		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)

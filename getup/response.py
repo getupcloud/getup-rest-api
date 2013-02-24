@@ -145,7 +145,7 @@ def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', he
 	hdrs = { 'Cache-Control': 'no-cache' }
 	if res is not None:
 		exclude_headers = [ 'status' ]
-		status_line = '%i %s' % (res.status_code, res.reason or res.raw.reason)
+		status_line = '%i %s' % (res.status_code, res.raw.reason)
 		hdrs.update([ (k, v) for (k,v) in res.headers.iteritems() if k.lower() not in exclude_headers ])
 		body = res.json if isinstance(res.json, (dict, list, tuple)) else res.content
 	else:
