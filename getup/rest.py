@@ -30,13 +30,16 @@ def request_params():
 #
 @bottle.post('/getup/rest/projects')
 @aaa.user
-@codec.parse_params('domain', 'application', 'cartridge', project='', scale=False)
-def post_create(user, domain, application, project, cartridge, scale):
+@codec.parse_params('domain', 'application', 'cartridge', project='', scale=False, dev_gear=False)
+def post_create(user, domain, application, project, cartridge, scale, dev_gear):
 	'''Clone and bind project to application, creating any missing component.
 	'''
 	scale = bool(scale)
 	if not project:
 		project = '%s-%s' % (application, domain)
+
+	if dev_gear:
+		dev_application = 'dev%s' % application
 
 	checklist = {
 		'project': False,
@@ -47,12 +50,23 @@ def post_create(user, domain, application, project, cartridge, scale):
 	checklist['project'] = gitlab.Gitlab().get_project(project).status_code == 404
 	checklist['domain'] = provider.OpenShift(user).get_dom(name=domain).status_code == 200
 	checklist['application']  = provider.OpenShift(user).get_app(domain=domain, name=application).status_code == 404
+	if dev_gear:
+		checklist['dev-application']  = provider.OpenShift(user).get_app(domain=domain, name=dev_application).status_code == 404
 
-	if not checklist['project'] or not checklist['application']:
+	if checklist['project'] is False or checklist['application'] is False or \
+		(dev_gear is True and checklist['dev-application'] is False):
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-	return projects.create_project(user=user, project=project, domain=domain, application=application,
-		cartridge=cartridge, scale=scale, gear_profile=app.config.provider.openshift.gear_profile)
+	p_app = projects.Application(domain=domain, application=application, cartridge=cartridge, scale=scale, \
+		gear_profile=app.config.provider.openshift.gear_profile)
+
+	if dev_gear:
+		d_app = projects.Application(domain=domain, application=dev_application, cartridge=cartridge, scale=False, \
+			gear_profile=app.config.provider.openshift.dev_gear_profile)
+	else:
+		d_app = False
+
+	return projects.create_project(user, projects.Project(project, p_app, d_app))
 
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
@@ -89,9 +103,9 @@ def delete_remotes_remote(user, project, remote):
 def post_clone(user, project):
 	'''Clone and bind project to application.
 	'''
-	domain = request_params().get('domain')
-	application = request_params().get('application')
-	return projects.clone_remote(user=user, project=project, domain=domain, application=application)
+	dom = request_params().get('domain')
+	app = request_params().get('application')
+	return projects.clone_remote(user, project, projects.Application(dom, app, None, None, None))
 
 #
 # Gitlab system hooks

@@ -7,6 +7,10 @@ import http
 import gitlab
 from response import response
 from datetime import datetime
+import collections
+
+Application = collections.namedtuple('Application', 'domain name cartridge scale gear_profile')
+Project = collections.namedtuple('Project', 'name application dev_application')
 
 app = bottle.app()
 
@@ -102,9 +106,9 @@ def _install_getup_key(user):
 	except Exception, ex:
 		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
 
-def clone_remote(user, project, domain, application):
+def clone_remote(user, project_name, application):
 	_install_getup_key(user)
-	res = _create_remote(user, project, domain, application, 'clone')
+	res = _create_remote(user, project_name, application.domain, application.name, 'clone')
 	return response(user, status=res['status'], body=res)
 
 def add_remote(user, project, domain, application):
@@ -124,7 +128,35 @@ def del_remote(user, project, remote):
 	result = run_command(user, _cmd_del(project, remote))
 	return response(user, status=result['status'], body=result)
 
-def create_project(user, project, domain, application, **app_args):
+def _create_domain(user, app):
+	res = provider.OpenShift(user).get_dom(app.domain)
+	if res.ok:
+		return None
+
+	res = provider.OpenShift(user).add_dom(app.domain)
+	if res.ok:
+		print 'Domain created:', app.domain
+		return res
+
+	raise response(user, status=res.status_code, body=res.json)
+
+def _create_gitlab_project(user, proj):
+	res = gitlab.Gitlab().add_project(name=proj.name)
+	if res.ok:
+		print 'Project created:', proj.name
+		return res
+
+	raise response(user, status=res.status_code, body=res.json)
+
+def _create_application(user, app):
+	res = provider.OpenShift(user).add_app(**app._asdict())
+	if res.ok:
+		print 'Application created: %s-%s' % (app.name, app.domain)
+		return res
+
+	raise response(user, status=res.status_code, body=res.json)
+
+def create_project(user, project):
 	start_time = datetime.utcnow().ctime()
 
 	report = []
@@ -137,37 +169,28 @@ def create_project(user, project, domain, application, **app_args):
 		report.append(r)
 
 	# create openshift domain
-	res = provider.OpenShift(user).get_dom(domain)
-	if not res.ok:
-		res = provider.OpenShift(user).add_dom(domain)
-		if not res.ok:
-			add_report('domain', 'Creating domain', res=res)
-			return response(user, status=res.status_code, body=report)
-	else:
-		add_report('domain', 'Using existing domain', res=res)
-		print 'Domain created:', domain
+	_create_domain(user, project.application)
 
 	# create gitlab project
-	res = gitlab.Gitlab().add_project(name=project)
+	res = _create_gitlab_project(user, project)
 	add_report('project', 'Create fresh project repository', res=res)
-	if not res.ok:
-		return response(user, status=res.status_code, body=report)
-	print 'Project created:', project
 
 	# create openshift app
-	res = provider.OpenShift(user).add_app(domain=domain, name=application, **app_args)
+	res = _create_application(user, project.application)
 	add_report('application', 'Create fresh openshift application', res=res)
-	if not res.ok:
-		return response(user, status=res.status_code, body=res.json)
-	print 'Application created: %s-%s' % (application, domain)
+
+	# create dev openshift app is applicable
+	if project.dev_application:
+		_create_application(user, project.dev_application)
+		add_report('dev_application', 'Create fresh openshift dev_application', res=res)
 
 	# clone and setup default remote
-	res = clone_remote(user, project, domain, application)
+	res = clone_remote(user, project.name, project.application)
 	add_report('clone', 'Clone and setup application code into project repository', res=res)
 	if not res.ok:
 		res.body = report
-		return res
-	print 'Project cloned from application: %s-%s -> %s' % (application, domain, project)
+		raise res
+	print 'Project cloned from application: %s-%s -> %s' % (project.application.name, project.application.domain, project.name)
 
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
