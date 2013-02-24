@@ -26,9 +26,6 @@ app_root = Path(os.environ.get('APP_ROOT', Path(__file__).dirname().dirname()))
 
 valid_config = tree()
 
-valid_config.database.encoding           = 'utf-8'
-valid_config.database.echo               = False
-valid_config.database.pool_recycle       = 3600
 valid_config.database.url                = 'mysql://{username}:{password}@{hostname}/{database}?charset={charset}'
 valid_config.database.config.hostname    = 'mysql.ops.getupcloud.com'
 valid_config.database.config.port        = 3306
@@ -37,6 +34,9 @@ valid_config.database.config.username    = 'getup'
 valid_config.database.config.password    = ''
 valid_config.database.config.charset     = 'utf8'
 valid_config.database.config.unix_socket = '/var/run/mysqld/mysqld.sock'
+valid_config.database.parameters.encoding     = 'utf-8'
+valid_config.database.parameters.echo         = False
+valid_config.database.parameters.pool_recycle = 3600
 
 valid_config.webgit.hostname      = 'git.ops.getupcloud.com'
 valid_config.webgit.token_header  = 'Private-Token'

@@ -46,7 +46,7 @@ def _create_table(engine, *tables):
 
 def start(app):
 	if 'engine' not in app.config.database:
-		app.config.database['engine'] = make_engine(app.config.database)
+		app.config.database['engine'] = make_engine(app.config.database.parameters)
 
 	# create accounting table
 	engine = app.config.database['engine']
