@@ -100,12 +100,11 @@ def delete_remotes_remote(user, project, remote):
 
 @bottle.post('/getup/rest/projects/<project>/clone')
 @aaa.user
-def post_clone(user, project):
+@codec.parse_params('domain', 'application')
+def post_clone(user, project, domain, application):
 	'''Clone and bind project to application.
 	'''
-	dom = request_params().get('domain')
-	app = request_params().get('application')
-	return projects.clone_remote(user, project, projects.Application(dom, app, None, None, None))
+	return projects.clone_remote(user, project, projects.Application(domain, application, None, None, None))
 
 #
 # Gitlab system hooks
