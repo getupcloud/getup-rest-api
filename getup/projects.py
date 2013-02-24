@@ -36,6 +36,11 @@ def run_command(user, cmd):
 		return output
 	except ValueError, ex:
 		print 'Failure parsing command output: %s' % ex
+		print '--- stdout'
+		print cmd_result.stdout
+		print '--- stderr'
+		print cmd_result.stderr
+		print '---'
 		raise response(user, status=http.HTTP_INTERNAL_SERVER_ERROR, body=str(ex))
 	except Exception, ex:
 		print "Failure executing command: '%s' with status=%i" % (cmd, cmd_result.retcode)
