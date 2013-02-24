@@ -31,7 +31,7 @@ def _get_user():
 		username, auth_token = read_auth_data(bottle.request.params, bottle.request.headers)
 		if username:
 			user = database.user(email=username)
-			if user['authentication_token'] != auth_token:
+			if user is None or user['authentication_token'] != auth_token:
 				return None
 		elif auth_token:
 			user = database.user(authentication_token=auth_token)
