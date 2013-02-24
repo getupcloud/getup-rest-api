@@ -190,21 +190,21 @@ def create_project(user, project):
 		res = _create_application(user, project.application)
 		set_report_status(res)
 
+		# clone and setup default remote
+		add_report('clone', 'Clone and setup application code into project repository')
+		res = _clone_app_to_repo(user, project.name, project.application)
+		set_report_status(res)
+
 		# create dev openshift app is applicable
 		if project.dev_application:
 			add_report('dev_application', 'Create fresh openshift dev_application')
 			res = _create_application(user, project.dev_application)
 			set_report_status(res)
 
-		# clone and setup default remote
-		add_report('clone', 'Clone and setup application code into project repository')
-		res = _clone_app_to_repo(user, project.name, project.application)
-		set_report_status(res)
-
 	except HTTPResponse, ex:
 		set_report_status(ex.res)
 		add_report('finish', 'Failure creating some component', start_time=start_time, end_time=datetime.utcnow().ctime())
-		return report
+		return response(user, status=ex.status_code, body=report)
 
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
