@@ -57,16 +57,16 @@ def post_create(user, domain, application, project, cartridge, scale, dev_gear):
 		(dev_gear is True and checklist['dev-application'] is False):
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
-	p_app = projects.Application(domain=domain, application=application, cartridge=cartridge, scale=scale, \
+	p_app = projects.Application(domain=domain, name=application, cartridge=cartridge, scale=scale, \
 		gear_profile=app.config.provider.openshift.gear_profile)
 
 	if dev_gear:
-		d_app = projects.Application(domain=domain, application=dev_application, cartridge=cartridge, scale=False, \
+		d_app = projects.Application(domain=domain, name=dev_application, cartridge=cartridge, scale=False, \
 			gear_profile=app.config.provider.openshift.dev_gear_profile)
 	else:
 		d_app = False
 
-	return projects.create_project(user, projects.Project(project, p_app, d_app))
+	return projects.create_project(user, projects.Project(name=project, application=p_app, dev_application=d_app))
 
 @bottle.get('/getup/rest/projects/<project>/remotes')
 @aaa.user
