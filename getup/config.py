@@ -5,7 +5,7 @@ from collections import defaultdict
 import os
 import copy
 
-class Tree(defaultdict):
+class Tree(defaultdict, object):
 	def __init__(self, *va, **kva):
 		super(Tree, self).__init__(*va, **kva)
 
@@ -54,7 +54,7 @@ def validate(node, valid):
 		if isinstance(v, dict):
 			if k not in valid:
 				raise NameError(k)
-			validate(v, valid[k], i+1)
+			validate(v, valid[k])
 		elif isinstance(v, basestring):
 			node[k] = os.path.expanduser(os.path.expandvars(v))
 
