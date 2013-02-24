@@ -129,7 +129,8 @@ class HTTPResponse(bottle.HTTPResponse):
 	def __init__(self, body, status, user, res, *va, **kva):
 		super(HTTPResponse, self).__init__(body=body, status=status, *va, **kva)
 		# some handy stuff
-		self.request = res.request if res else None
+		self.res = res
+		self.req = res.request if res else None
 		self.user = user
 		self.ok = 400 > self.status_code >= 200
 		try:
@@ -146,17 +147,14 @@ def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', he
 		exclude_headers = [ 'status' ]
 		status_line = '%i %s' % (res.status_code, res.reason or res.raw.reason)
 		hdrs.update([ (k, v) for (k,v) in res.headers.iteritems() if k.lower() not in exclude_headers ])
-		body = res.content
+		body = res.json if isinstance(res.json, (dict, list, tuple)) else res.content
 	else:
 		status_line = '%i %s' % (status, http.responses(status))
 	if headers:
 		hdrs.update(headers)
 
 	if isinstance(body, (dict, list, tuple)):
-		data = StringIO.StringIO()
-		json.dump(body, data, indent=3)
-		data.seek(0)
-		body = data.read()
+		body = json.dumps(body, indent=3)
 		hdrs['Content-Type'] = 'application/json'
 
 	return HTTPResponse(body=body, status=status_line, user=user, res=res, **hdrs)

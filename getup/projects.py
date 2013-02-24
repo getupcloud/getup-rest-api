@@ -5,7 +5,7 @@ import bottle
 import provider
 import http
 import gitlab
-from response import response
+from response import response, HTTPResponse
 from datetime import datetime
 import collections
 
@@ -131,14 +131,14 @@ def del_remote(user, project, remote):
 def _create_domain(user, app):
 	res = provider.OpenShift(user).get_dom(app.domain)
 	if res.ok:
-		return None
+		return res
 
 	res = provider.OpenShift(user).add_dom(app.domain)
 	if res.ok:
 		print 'Domain created:', app.domain
 		return res
 
-	raise response(user, status=res.status_code, body=res.json)
+	raise response(user, res=res)
 
 def _create_gitlab_project(user, proj):
 	res = gitlab.Gitlab().add_project(name=proj.name)
@@ -146,7 +146,7 @@ def _create_gitlab_project(user, proj):
 		print 'Project created:', proj.name
 		return res
 
-	raise response(user, status=res.status_code, body=res.json)
+	raise response(user, res=res)
 
 def _create_application(user, app):
 	res = provider.OpenShift(user).add_app(**app._asdict())
@@ -154,43 +154,57 @@ def _create_application(user, app):
 		print 'Application created: %s-%s' % (app.name, app.domain)
 		return res
 
-	raise response(user, status=res.status_code, body=res.json)
+	raise response(user, res=res)
+
+def _clone_app_to_repo(user, project_name, application):
+	res = clone_remote(user, project_name, application)
+	if res.ok:
+		print 'Project cloned from application: %s-%s -> %s' % (application.name, application.domain, project_name)
+		return res
+
+	raise response(user, res=res)
 
 def create_project(user, project):
 	start_time = datetime.utcnow().ctime()
 
 	report = []
 	def add_report(action, description, **kva):
-		r = { 'action': action, 'description': description }
-		if 'res' in kva:
-			r.update(status=res.status_code, content=res.json)
-			kva.pop('res')
-		r.update(kva)
-		report.append(r)
+		report.append(dict(action=action, description=description, **kva))
 
-	# create openshift domain
-	_create_domain(user, project.application)
+	def set_report_status(res):
+		report[-1].update(status=res.status_code, content=res.json)
 
-	# create gitlab project
-	res = _create_gitlab_project(user, project)
-	add_report('project', 'Create fresh project repository', res=res)
+	try:
+		# create openshift domain
+		add_report('domain', 'Create openshift domain')
+		res = _create_domain(user, project.application)
+		set_report_status(res)
 
-	# create openshift app
-	res = _create_application(user, project.application)
-	add_report('application', 'Create fresh openshift application', res=res)
+		# create gitlab project
+		add_report('project', 'Create project repository')
+		res = _create_gitlab_project(user, project)
+		set_report_status(res)
 
-	# create dev openshift app is applicable
-	if project.dev_application:
-		_create_application(user, project.dev_application)
-		add_report('dev_application', 'Create fresh openshift dev_application', res=res)
+		# create openshift app
+		add_report('application', 'Create openshift application')
+		res = _create_application(user, project.application)
+		set_report_status(res)
 
-	# clone and setup default remote
-	res = clone_remote(user, project.name, project.application)
-	add_report('clone', 'Clone and setup application code into project repository', res=res)
-	if not res.ok:
-		res.body = report
-		raise res
-	print 'Project cloned from application: %s-%s -> %s' % (project.application.name, project.application.domain, project.name)
+		# create dev openshift app is applicable
+		if project.dev_application:
+			add_report('dev_application', 'Create fresh openshift dev_application')
+			res = _create_application(user, project.dev_application)
+			set_report_status(res)
+
+		# clone and setup default remote
+		add_report('clone', 'Clone and setup application code into project repository')
+		res = _clone_app_to_repo(user, project.name, project.application)
+		set_report_status(res)
+
+	except HTTPResponse, ex:
+		set_report_status(ex.res)
+		add_report('finish', 'Failure creating some component', start_time=start_time, end_time=datetime.utcnow().ctime())
+		return report
 
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
