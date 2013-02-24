@@ -54,6 +54,7 @@ def validate(node, valid):
 		if isinstance(v, dict):
 			if k not in valid:
 				raise NameError(k)
+			validate(v, valid[k], i+1)
 		elif isinstance(v, basestring):
 			node[k] = os.path.expanduser(os.path.expandvars(v))
 
