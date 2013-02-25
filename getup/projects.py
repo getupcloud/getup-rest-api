@@ -245,7 +245,7 @@ def _add_wildcard_cname(name):
 	zone = app.config.dns.zone
 	key = app.config.dns.key
 
-	server = socket.getaddrinfo(host=app.config.dns.server, port=app.config.dns.port, family=socket.SOCK_DGRAM, proto=socket.SOL_UDP)
+	server = socket.getaddrinfo(app.config.dns.server, app.config.dns.port, socket.SOCK_DGRAM)
 	if not server:
 		raise response(user=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body="Unable to resolve DNS server: {server}:{port}".format(**app.config.dns))
 	af, addr, port = (server[0],) + server[4][:2]
