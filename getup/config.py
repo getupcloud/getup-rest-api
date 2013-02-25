@@ -45,7 +45,7 @@ valid_config.webgit.remotes_bin   = '/githome/git/bin/remotes'
 valid_config.webgit.identity_file = '~getup/.ssh/id_rsa'
 valid_config.webgit.pubkey_file   = '~getup/getup-rest-api/.ssh/authorized_keys'
 
-valid_config.provider.openshift.hostname         = 'broker.ops.getupcloud.com'
+valid_config.provider.openshift.hostname         = 'broker.getupcloud.com'
 valid_config.provider.openshift.gear_profile     = 'production'
 valid_config.provider.openshift.dev_gear_profile = 'development'
 
