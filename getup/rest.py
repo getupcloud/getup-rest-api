@@ -84,12 +84,11 @@ def get_remotes_remote(user, project, remote):
 
 @bottle.post('/getup/rest/projects/<project>/remotes')
 @aaa.user
-def post_remotes(user, project):
+@codec.parse_params('domain', 'application')
+def post_remotes(user, project, domain, application):
 	'''Bind project to application.
 	'''
-	domain = request_params().get('domain')
-	application = request_params().get('application')
-	return projects.add_remote(user=user, project=project, domain=domain, application=application)
+	return projects.clone_remote(user, project, projects.Application(domain, application, None, None, None))
 
 @bottle.delete('/getup/rest/projects/<project>/remotes/<remote>')
 @aaa.user

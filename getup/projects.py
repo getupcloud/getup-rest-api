@@ -116,9 +116,9 @@ def clone_remote(user, project_name, application):
 	res = _create_remote(user, project_name, application.domain, application.name, 'clone')
 	return response(user, status=res['status'], body=res)
 
-def add_remote(user, project, domain, application):
+def add_remote(user, project_name, application):
 	_install_getup_key(user)
-	res = _create_remote(user, project, domain, application, 'add')
+	res = _create_remote(user, project_name, application.domain, application.name, 'add')
 	return response(user, status=res['status'], body=res)
 
 def del_remote(user, project, remote):
@@ -161,13 +161,21 @@ def _create_application(user, app):
 
 	raise response(user, res=res)
 
-def _clone_app_to_repo(user, project_name, application):
+def _clone_app_into_repo(user, project_name, application):
 	res = clone_remote(user, project_name, application)
 	if res.ok:
 		print 'Project cloned from application: %s-%s -> %s' % (application.name, application.domain, project_name)
 		return res
 
-	raise response(user, res=res)
+	raise res
+
+def _add_remote(user, project_name, application):
+	res = add_remote(user, project_name, application)
+	if res.ok:
+		print 'Remote added to project: %s -> %s-%s' % (project_name, application.name, application.domain)
+		return res
+
+	raise res
 
 def create_project(user, project):
 	start_time = datetime.utcnow().ctime()
@@ -200,13 +208,18 @@ def create_project(user, project):
 
 		# clone and setup default remote
 		add_report('clone', 'Clone and setup application code into project repository')
-		res = _clone_app_to_repo(user, project.name, project.application)
+		res = _clone_app_into_repo(user, project.name, project.application)
 		set_report_status(res)
 
 		# create dev openshift app is applicable
 		if project.dev_application:
 			add_report('dev_application', 'Create openshift dev_application')
 			res = _create_application(user, project.dev_application)
+			set_report_status(res)
+
+			# add remote to dev repoitory
+			add_report('dev_remote', 'Add dev_application as remote')
+			res = add_remote(user, project, dev_application)
 			set_report_status(res)
 
 	except HTTPResponse, ex:
