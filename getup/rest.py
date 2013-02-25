@@ -132,6 +132,13 @@ def response_status(*statuses):
 			return self.func(*va, **kva)
 	return ResponseStatusDecorator
 
+@bottle.post('/broker/rest/domains/<domain>')
+@response_status(204)
+@aaa.user
+def delete_domain(user, domain):
+	aaa.delete_dom(user, domain)
+	return 'OK'
+
 @bottle.post('/broker/rest/domains/<domain>/applications')
 @response_status(201)
 @aaa.user

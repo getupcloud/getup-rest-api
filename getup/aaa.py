@@ -77,6 +77,9 @@ def _account(user, event, value):
 		value = json.dumps(value)
 	database.accounting(user=user, event_name=event, event_value=value)
 
+def delete_dom(user, domain):
+	return _account(user, event='delete-dom', value={'domain_id': domain})
+
 def create_app(user, domain, app_data):
 	fields = [ 'name', 'cartridge', 'cartridges', 'scale' ]
 	data = { field:app_data[field] for field in app_data if field in fields }
