@@ -173,7 +173,7 @@ def _add_remote(user, project_name, application):
 	res = add_remote(user, project_name, application)
 	if res.ok:
 		print 'Remote added to project: %s -> %s-%s' % (project_name, application.name, application.domain)
-		return res
+		return res,d
 
 	raise res
 
