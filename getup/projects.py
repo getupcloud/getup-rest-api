@@ -179,7 +179,7 @@ def create_project(user, project):
 
 	def set_report_status(res):
 		r = report[-1]
-		print '%s: %s\n---\n%s\n---' % (r.action, res.status_code, res.json)
+		print '%s: %s\n---\n%s\n---' % (r['action'], res.status_code, res.json)
 		report[-1].update(status=res.status_code, content=res.json)
 
 	try:
