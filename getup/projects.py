@@ -223,7 +223,7 @@ def create_project(user, project):
 			set_report_status(res)
 
 			#add_report('dev_application_dns', 'Register dev_application DNS wildcard (*.%s)' % project.dev_application.name)
-			_add_wildcard_cname(project.dev_application.name)
+			_add_wildcard_cname('%s-%s' % (project.dev_application.name, project.dev_application.domain))
 			#set_report_status(res)
 
 			# add remote to dev repoitory
@@ -241,20 +241,24 @@ def create_project(user, project):
 	return response(user, status=http.HTTP_CREATED, body=report)
 
 def _add_wildcard_cname(name):
+	'''Creates a DNS CNAME entry '*.{name}' to '{name}'
+	'''
+
 	assert name, 'Invalid parameters to DNS UPDATE: name=%s' % name
 	zone = app.config.dns.zone
-	key = app.config.dns.key
+	key  = app.config.dns.key
 
-	server = socket.getaddrinfo(app.config.dns.server, app.config.dns.port, socket.SOCK_DGRAM)
+	server = socket.getaddrinfo(app.config.dns.server, app.config.dns.port, socket.SOCK_DGRAM, 0, socket.SOL_UDP)
 	if not server:
 		raise response(user=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body="Unable to resolve DNS server: {server}:{port}".format(**app.config.dns))
-	af, addr, port = (server[0],) + server[4][:2]
+	server = server[0]
+	af = server[0]
+	addr, port = server[-1][:2]
 
 	cname = '*.%s' % name
-	print 'Registering DNS CNAME: %s -> %s' % (name, cname)
-	keyring = dns.tsigkeyring.from_text({zone: key})
+	print 'Registering DNS CNAME: {cname} -> {name}.{zone}'.format(cname=cname, name=name, zone=zone)
+	keyring = dns.tsigkeyring.from_text({ zone: key })
 	update = dns.update.Update(zone, keyring=keyring, keyname=zone, keyalgorithm=dns.tsig.HMAC_MD5)
-	update.add(name, 60, 'cname', cname)
+	update.add(cname, 60, 'cname', name)
 	response = dns.query.udp(update, where=addr, port=port, timeout=30, af=af)
 	print 'DNS response\n---\n', response.to_text(), '\n---'
-
