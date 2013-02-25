@@ -219,7 +219,7 @@ def create_project(user, project):
 
 			# add remote to dev repoitory
 			add_report('dev_remote', 'Add dev_application as remote')
-			res = add_remote(user, project, dev_application)
+			res = add_remote(user, project, project.dev_application)
 			set_report_status(res)
 
 	except HTTPResponse, ex:
