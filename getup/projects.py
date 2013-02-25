@@ -174,9 +174,12 @@ def create_project(user, project):
 
 	report = []
 	def add_report(action, description, **kva):
+		print '%s: %s' % (action, description)
 		report.append(dict(action=action, description=description, **kva))
 
 	def set_report_status(res):
+		r = report[-1]
+		print '%s: %s\n---\n%s\n---' % (r.action, res.status_code, res.json)
 		report[-1].update(status=res.status_code, content=res.json)
 
 	try:
@@ -202,13 +205,14 @@ def create_project(user, project):
 
 		# create dev openshift app is applicable
 		if project.dev_application:
-			add_report('dev_application', 'Create fresh openshift dev_application')
+			add_report('dev_application', 'Create openshift dev_application')
 			res = _create_application(user, project.dev_application)
 			set_report_status(res)
 
 	except HTTPResponse, ex:
 		set_report_status(ex.res)
-		add_report('finish', 'Failure creating some component', start_time=start_time, end_time=datetime.utcnow().ctime())
+		add_report('finish', 'Failure creating component (%s)' % report[-1]['action'], status=str(),
+			start_time=start_time, end_time=datetime.utcnow().ctime())
 		return response(user, status=ex.status_code, body=report)
 
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
