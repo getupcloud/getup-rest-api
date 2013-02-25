@@ -8,6 +8,11 @@ import gitlab
 from response import response, HTTPResponse
 from datetime import datetime
 import collections
+import socket
+import dns.query
+import dns.tsigkeyring
+import dns.update
+import dns.tsig
 
 Application = collections.namedtuple('Application', 'domain name cartridge scale gear_profile')
 Project = collections.namedtuple('Project', 'name application dev_application')
@@ -217,6 +222,10 @@ def create_project(user, project):
 			res = _create_application(user, project.dev_application)
 			set_report_status(res)
 
+			#add_report('dev_application_dns', 'Register dev_application DNS wildcard (*.%s)' % project.dev_application.name)
+			_add_wildcard_cname(project.dev_application.name)
+			#set_report_status(res)
+
 			# add remote to dev repoitory
 			add_report('dev_remote', 'Add dev_application as remote')
 			res = add_remote(user, project.name, project.dev_application)
@@ -230,3 +239,22 @@ def create_project(user, project):
 
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
+
+def _add_wildcard_cname(name):
+	assert name, 'Invalid parameters to DNS UPDATE: name=%s' % name
+	zone = app.config.dns.zone
+	key = app.config.dns.key
+
+	server = socket.getaddrinfo(host=app.config.dns.server, port=app.config.dns.port, family=socket.SOCK_DGRAM, proto=socket.SOL_UDP)
+	if not server:
+		raise response(user=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body="Unable to resolve DNS server: {server}:{port}".format(**app.config.dns))
+	af, addr, port = (server[0],) + server[4][:2]
+
+	cname = '*.%s' % name
+	print 'Registering DNS CNAME: %s -> %s' % (name, cname)
+	keyring = dns.tsigkeyring.from_text({zone: key})
+	update = dns.update.Update(zone, keyring=keyring, keyname=zone, keyalgorithm=dns.tsig.HMAC_MD5)
+	update.add(name, 60, 'cname', cname)
+	response = dns.query.udp(update, where=addr, port=port, timeout=30, af=af)
+	print 'DNS response\n---\n', response.to_text(), '\n---'
+

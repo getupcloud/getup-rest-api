@@ -49,6 +49,12 @@ valid_config.provider.openshift.hostname         = 'broker.ops.getupcloud.com'
 valid_config.provider.openshift.gear_profile     = 'production'
 valid_config.provider.openshift.dev_gear_profile = 'development'
 
+valid_config.dns.server = 'dnsmaster.getup.io'
+valid_config.dns.port   = 53
+valid_config.dns.zone   = 'getup.io'
+valid_config.dns.key    = ''
+
+
 def validate(node, valid):
 	for k, v in node.iteritems():
 		if isinstance(v, dict):
