@@ -8,3 +8,4 @@ path.py==2.4.1
 requests==0.14.2
 httpagentparser==1.2.1
 openssh-wrapper==0.3.2
+dnspython==1.10.0
