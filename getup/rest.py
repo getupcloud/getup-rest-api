@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import bottle
+import re
 import aaa
 import http
 import json
 import codec
+import bottle
 import gitlab
 import provider
 import projects
@@ -61,11 +62,11 @@ def post_create(user, domain, application, project, cartridge, scale, dev_gear):
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
 	p_app = projects.Application(domain=domain, name=application, cartridge=cartridge, scale=scale, \
-		gear_profile=app.config.provider.openshift.gear_profile)
+		gear_profile=app.config.provider.openshift.default_gear_profile)
 
 	if dev_gear:
 		d_app = projects.Application(domain=domain, name=dev_application, cartridge=cartridge, scale=False, \
-			gear_profile=app.config.provider.openshift.dev_gear_profile)
+			gear_profile=app.config.provider.openshift.devel_gear_profile)
 	else:
 		d_app = False
 
@@ -141,46 +142,70 @@ def delete_domain(user, domain):
 @bottle.post('/broker/rest/domains/<domain>/applications')
 @aaa.user
 def post_application(user, domain):
-	body = request_params()
 	headers = bottle.HeaderDict(bottle.request.headers)
 	headers.pop('content-length', None)
-
-	# create git repo
-	name = body['name']
-	project = '{name}-{domain}'.format(name=name, domain=domain)
-	print 'creating project: name={project}'.format(project=project)
-	gl_res = gitlab.Gitlab().add_project(project)
-	print 'creating project: name={project} (done with {status})'.format(project=project, status=gl_res.status_code)
-	if not gl_res.ok:
-		print 'ERROR:', gl_res.text
-		raise bottle.HTTPError(status=500, body='error creating repository')
-
-	# create the app
-	print 'creating application: name={project}'.format(project=project)
-	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
-	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
+	body = request_params()
 
 	#TODO: fix default gear_profile on broker
 	if 'gear_profile' not in body:
-		body.update(gear_profile=app.config.provider.openshift.gear_profile)
+		body.update(gear_profile=app.config.provider.openshift.default_gear_profile)
+
+	is_dev_gear = body['gear_profile'] == app.config.provider.openshift.devel_gear_profile
+	name = body['name']
+	app_name = '{name}-{domain}'.format(name=name, domain=domain)
+
+	# For dev gears, the project already exists.
+	# We simply add the new app as a remote to the project.
+	# The project name is extracted from :initial_git_url, given
+	# as a parameter to this request.
+	# The git url MUST be inside our domain (ex: git@git.getupcloud.com/<project>.git)
+	if is_dev_gear and 'initial_git_url' in body:
+		match = re.match('(?:[a-z]+://)?git@git\.getupcloud\.com/(?P<project>[^.]+)\.git$', body['initial_git_url'], re.IGNORECASE)
+		if not match:
+			raise bottle.HTTPError(status=500, body='invalid git repository: {repo}'.format(repo=body['initial_git_url']))
+		project = match.group('project')
+		body.pop('initial_git_url', None)
+	else:
+		project = '{name}-{domain}'.format(name=name, domain=domain)
+
+	print 'Creatin application:'
+	print ' - user:      {user.email}'.format(user=user)
+	print ' - name:      {name}'.format(name=name)
+	print ' - domain:    {domain}'.format(domain=domain)
+	print ' - project:   {project}'.format(project=project)
+	print ' - gear:      {body[gear_profile]}'.format(body=body)
+
+	# create git repo
+	if not is_dev_gear:
+		gitlab.Gitlab().add_project(project)
+
+	# create the app
+	print 'creating application: name={app_name}'.format(app_name=app_name)
+	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
+	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
+
 	if bottle.request.json:
 		body = json.dumps(body)
 
 	os_res = openshift(uri).POST(verify=False, data=body, headers=headers)
-	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
+	print 'creating application: name={app_name} (done with {status})'.format(app_name=app_name, status=os_res.status_code)
 	if not os_res.ok:
 		print 'ERROR:', os_res.text
 		return to_bottle_response(os_res)
 
-	print 'sync project repository: name={project}'.format(project=project)
-	cl_res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
-	print 'sync project repository: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
-	if not cl_res.ok:
-		print 'ERROR:', cl_res.body
+	try:
+		if is_dev_gear:
+			res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
+			os_res.json['data']['git_url'] = 'ssh://git@git.getupcloud.com/{project}.git'.format(project=project)
+		else:
+			res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 
-	# account the app
-	print 'accounting new project: name={project}'.format(project=project)
-	aaa.create_app(user, domain, request_params())
+		if not res.ok:
+			print 'ERROR:', res.body
+	finally:
+		# account the app
+		print 'accounting new application: name={project}'.format(project=project)
+		aaa.create_app(user, domain, request_params())
 
 	return to_bottle_response(os_res)
 

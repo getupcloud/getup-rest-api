@@ -120,15 +120,24 @@ def _install_getup_key(user):
 	except Exception, ex:
 		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
 
+#
+# Commands
+#
 def clone_remote(user, project_name, application):
 	_install_getup_key(user)
+	mesg = 'setup application project repository: app={app.name}-{app.domain} project={project}'.format(app=application, project=project_name)
+	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'clone')
+	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.get('status'))
 	return response(user, status=res['status'], body=res)
 
 def add_remote(user, project_name, application):
 	_install_getup_key(user)
+	mesg = 'attaching repository into application: app={app.name}-{app.domain} project={project}'.format(app=application, project=project_name)
+	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'add')
-	return response(user, status=res['status'], body=res)
+	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.get('status'))
+	return response(user, status=res.get('status'), body=res)
 
 def del_remote(user, project, remote):
 	if not all([user, project, remote]):
