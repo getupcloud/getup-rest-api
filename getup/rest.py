@@ -117,7 +117,7 @@ def handler_gitlab_hook():
 # Broker callbacks
 #
 def response_status_ok(func):
-	def wrapper(self, *va, **kva):
+	def wrapper(*va, **kva):
 		try:
 			status = int(bottle.request.headers['X-Response-Status'])
 		except (ValueError, KeyError):
