@@ -99,7 +99,7 @@ def _create_remote(user, project, domain, application, command='add'):
 		raise response(user, res)
 
 	remote = '%(name)s-%(domain_id)s' % app_data
-	git_url = '{ssh_url}/~/git/{name}.git/'
+	git_url = '{ssh_url}/~/git/{name}.git/'.format(**app_data)
 	return run_command(user, _cmd_create(command, project, remote, git_url))
 
 def _install_getup_key(user):
