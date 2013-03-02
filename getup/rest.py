@@ -24,7 +24,7 @@ app = bottle.default_app()
 
 def request_params(name=None):
 	if name:
-		return bottle.request.json.get('name', bottle.request.params.get('name'))
+		return bottle.request.json.get('name') if bottle.request.json else bottle.request.params.get('name')
 	return bottle.request.json or bottle.request.params
 
 #
