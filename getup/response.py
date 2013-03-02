@@ -158,3 +158,6 @@ def response(user, res=None, status=http.HTTP_INTERNAL_SERVER_ERROR, body='', he
 		hdrs['Content-Type'] = 'application/json'
 
 	return HTTPResponse(body=body, status=status_line, user=user, res=res, **hdrs)
+
+def to_bottle_response(requests_res):
+	return bottle.Response(body=requests_res.body, status=requests_res.status_code, headers=requests_res.headers)

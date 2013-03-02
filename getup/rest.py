@@ -8,7 +8,7 @@ import codec
 import gitlab
 import provider
 import projects
-from response import response
+from response import response, to_bottle_response
 
 #class StripPathMiddleware(object):
 #	def __init__(self, app):
@@ -154,7 +154,8 @@ def post_application(user, domain):
 
 	# account the app
 	aaa.create_app(user, domain, request_params())
-	return 'OK'
+
+	return to_bottle_response(res)
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>')
 @response_status_ok
