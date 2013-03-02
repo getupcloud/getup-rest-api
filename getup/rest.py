@@ -141,8 +141,11 @@ def delete_domain(user, domain):
 @bottle.post('/broker/rest/domains/<domain>/applications')
 @aaa.user
 def post_application(user, domain):
-	# create git repo
 	body = request_params()
+	headers = bottle.HeaderDict(bottle.request.headers)
+	headers.pop('content-length', None)
+
+	# create git repo
 	name = body['name']
 	project = '{name}-{domain}'.format(name=name, domain=domain)
 	print 'creating project: name={project}'.format(project=project)
@@ -158,11 +161,12 @@ def post_application(user, domain):
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 
 	#TODO: fix default gear_profile on broker
-	body.update(gear_profile=app.config.provider.openshift.gear_profile)
+	if 'gear_profile' not in body:
+		body.update(gear_profile=app.config.provider.openshift.gear_profile)
 	if bottle.request.json:
 		body = json.dumps(body)
 
-	os_res = openshift(uri).POST(verify=False, data=body, headers=dict(bottle.request.headers))
+	os_res = openshift(uri).POST(verify=False, data=body, headers=headers)
 	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
 	if not os_res.ok:
 		print 'ERROR:', os_res.text
