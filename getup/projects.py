@@ -138,7 +138,7 @@ def add_remote(user, project_name, application):
 	mesg = 'attaching repository into application: app={app.name}-{app.domain} project={project}'.format(app=application, project=project_name)
 	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'add')
-	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.status)
+	print '{mesg} (end with {status})'.format(mesg=mesg, status=res['status'])
 	if not res.ok:
 		print 'ERROR:', res.body
 	return response(user, status=res['status'], body=res)
