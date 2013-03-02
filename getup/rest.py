@@ -25,7 +25,7 @@ app = bottle.default_app()
 
 def request_params(name=None):
 	if name:
-		return bottle.request.json.get('name') if bottle.request.json else bottle.request.params.get('name')
+		return bottle.request.json.get(name) if bottle.request.json else bottle.request.params.get(name)
 	return bottle.request.json or bottle.request.params
 
 #
@@ -142,7 +142,8 @@ def delete_domain(user, domain):
 @aaa.user
 def post_application(user, domain):
 	# create git repo
-	name = request_params('name')
+	body = request_params()
+	name = body['name']
 	project = '{name}-{domain}'.format(name=name, domain=domain)
 	print 'creating project: name={project}'.format(project=project)
 	gl_res = gitlab.Gitlab().add_project(project)
@@ -157,11 +158,11 @@ def post_application(user, domain):
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 
 	#TODO: fix default gear_profile on broker
-	body = bottle.request.json if bottle.request.json else dict(bottle.request.params)
-	if 'gear_profile' not in body:
-		body['gear_profile'] = app.config.provider.openshift.gear_profile
+	body.update(gear_profile=app.config.provider.openshift.gear_profile)
+	if body.requests.json:
+		body = json.dumps(body)
 
-	os_res = openshift(uri).POST(verify=False, data=json.dumps(body), headers=dict(bottle.request.headers))
+	os_res = openshift(uri).POST(verify=False, data=body, headers=dict(bottle.request.headers))
 	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
 	if not os_res.ok:
 		print 'ERROR:', os_res.text
