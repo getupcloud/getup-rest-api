@@ -22,7 +22,9 @@ from response import response
 
 app = bottle.default_app()
 
-def request_params():
+def request_params(name=None):
+	if name:
+		return bottle.request.json.get('name', bottle.request.params.get('name'))
 	return bottle.request.json or bottle.request.params
 
 #
@@ -138,14 +140,18 @@ def delete_domain(user, domain):
 @bottle.post('/broker/rest/domains/<domain>/applications')
 @aaa.user
 def post_application(user, domain):
-	params = request_params()
 	# create git repo
-	project = '{name}-{domain}'.format(domain=domain, **params)
+	name = request_params('name')
+	project = '{name}-{domain}'.format(name=name, domain=domain)
 	gitlab.Gitlab().add_project(project)
+
 	# create the app
+	print 'creating application: name={project}'.format(project=project)
+	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
-	openshift = provider.OpenShift(user)
 	res = openshift(uri).POST(verify=False, data=bottle.request.body, headers=dict(bottle.request.headers))
+	print 'creating application: name={project} (done with {status})'.format(project=project, status=res.status_code)
+
 	# account the app
 	aaa.create_app(user, domain, request_params())
 	return 'OK'

@@ -9,10 +9,11 @@ from getup import http, response
 app = bottle.default_app()
 
 class OpenShift(Provider):
-	def __init__(self, user, default_domain=None):
+	def __init__(self, user, hostname=None, default_domain=None):
+		base_url = 'https://' + hostname if hostname else app.config.provider.openshift.hostname
 		Provider.__init__(self,
 			name='OpenShift',
-			base_url='https://' + app.config.provider['openshift']['hostname'].rstrip('/'),
+			base_url=base_url.rstrip('/'),
 			auth=(user['email'], user['authentication_token']))
 		self.default_domain = default_domain
 
