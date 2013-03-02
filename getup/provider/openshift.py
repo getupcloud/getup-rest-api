@@ -10,7 +10,7 @@ app = bottle.default_app()
 
 class OpenShift(Provider):
 	def __init__(self, user, hostname=None, default_domain=None):
-		base_url = 'https://' + hostname if hostname else app.config.provider.openshift.hostname
+		base_url = 'https://%s' % (hostname if hostname else app.config.provider.openshift.hostname)
 		Provider.__init__(self,
 			name='OpenShift',
 			base_url=base_url.rstrip('/'),
