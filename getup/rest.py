@@ -139,6 +139,7 @@ def delete_domain(user, domain):
 @response_status_ok
 @aaa.user
 def post_application(user, domain):
+	print '+++', dict(bottle.request.params)
 	res = gitlab.Gitlab().add_project('{name}-{domain}'.format(domain=domain, **bottle.request.params))
 	aaa.create_app(user, domain, request_params())
 	return 'OK'
