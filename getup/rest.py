@@ -116,20 +116,17 @@ def handler_gitlab_hook():
 #
 # Broker callbacks
 #
-def response_status_ok():
-	class ResponseStatusDecorator:
-		def __init__(self, func):
-			self.func = func
-		def __call__(self, *va, **kva):
-			try:
-				status = int(bottle.request.headers['X-Response-Status'])
-			except (ValueError, KeyError):
-				raise bottle.HTTPResponse(status=500, body='Invalid or missing header: X-Response-Status')
+def response_status_ok(func):
+	def wrapper(self, *va, **kva):
+		try:
+			status = int(bottle.request.headers['X-Response-Status'])
+		except (ValueError, KeyError):
+			raise bottle.HTTPResponse(status=500, body='Invalid or missing header: X-Response-Status')
 
-			if 200 <= status < 400:
-				return self.func(*va, **kva)
-			raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
-	return ResponseStatusDecorator
+		if 200 <= status < 400:
+			return func(*va, **kva)
+		raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
+	return wrapper
 
 @bottle.delete('/broker/rest/domains/<domain>')
 @response_status_ok
