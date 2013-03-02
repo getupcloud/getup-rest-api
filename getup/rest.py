@@ -149,17 +149,20 @@ def post_application(user, domain):
 	print 'creating application: name={project}'.format(project=project)
 	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
-	res = openshift(uri).POST(verify=False, data=bottle.request.body, headers=dict(bottle.request.headers))
-	print 'creating application: name={project} (done with {status})'.format(project=project, status=res.status_code)
+	os_res = openshift(uri).POST(verify=False, data=bottle.request.body, headers=dict(bottle.request.headers))
+	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
 
 	print 'sync project repository: name={project}'.format(project=project)
-	projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
+	cl_res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
+	print 'sync project repository: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
+	if not cl_res.ok:
+		print 'ERROR:', cl_res.body
 
 	# account the app
 	print 'accounting new project: name={project}'.format(project=project)
 	aaa.create_app(user, domain, request_params())
 
-	return to_bottle_response(res)
+	return to_bottle_response(os_res)
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>')
 @response_status_ok
