@@ -11,7 +11,7 @@ def user(userid=None, token=None):
 	users = Hammock('https://' + app.config.webgit.hostname, headers=hdr).users
 	if userid:
 		u = users.GET(userid).json
-		u['keys'] = user.keys.GET(verify=False).json
+		u['keys'] = users.keys.GET(verify=False).json
 		return [ u ]
 	else:
 		users = Hammock('https://' + app.config.webgit.hostname, headers=hdr).users
@@ -34,6 +34,7 @@ class Gitlab:
 		return getattr(self.api, name)
 
 	def add_project(self, name, **kvargs):
+		print 'creating project: name={name}'.format(name=name)
 		return self.api.api.v2.projects.POST(verify=False, data=json.dumps({'name': name}), **kvargs)
 
 	def get_project(self, name=None, **kvargs):
@@ -43,6 +44,7 @@ class Gitlab:
 			return self.api.api.v2.projects.GET(verify=False)
 
 	def add_key(self, title, key, headers=None, **kvargs):
+		print 'adding ssh-key: title={title} key={key}'.format(title=title, key=key[:32])
 		hdrs = self.headers
 		if headers:
 			hdrs.update(headers)
@@ -51,6 +53,7 @@ class Gitlab:
 		return self.api.api.v2.user.keys.POST(verify=False, data=json.dumps(body), headers=hdrs, **kvargs)
 
 	def del_key(self, id, headers=None, **kvargs):
+		print 'removing ssh-key: id={id}'.format(id=id)
 		hdrs = self.headers
 		if headers:
 			hdrs.update(headers)
