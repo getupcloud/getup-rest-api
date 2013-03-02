@@ -116,10 +116,9 @@ def handler_gitlab_hook():
 #
 # Broker callbacks
 #
-def response_status(*statuses):
+def response_status_ok():
 	class ResponseStatusDecorator:
 		def __init__(self, func):
-			self.statuses = statuses
 			self.func = func
 		def __call__(self, *va, **kva):
 			try:
@@ -127,20 +126,20 @@ def response_status(*statuses):
 			except (ValueError, KeyError):
 				raise bottle.HTTPResponse(status=500, body='Invalid or missing header: X-Response-Status')
 
-			if status not in self.statuses:
-				raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
-			return self.func(*va, **kva)
+			if 200 <= status < 400:
+				return self.func(*va, **kva)
+			raise bottle.HTTPResponse(status=404, body='Unhandled status: %i' % status)
 	return ResponseStatusDecorator
 
 @bottle.delete('/broker/rest/domains/<domain>')
-@response_status(204)
+@response_status_ok
 @aaa.user
 def delete_domain(user, domain):
 	aaa.delete_dom(user, domain)
 	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications')
-@response_status(201)
+@response_status_ok
 @aaa.user
 def post_application(user, domain):
 	res = gitlab.Gitlab().add_project('{name}-{domain}'.format(domain=domain, **bottle.request.params))
@@ -148,28 +147,28 @@ def post_application(user, domain):
 	return 'OK'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>')
-@response_status(204)
+@response_status_ok
 @aaa.user
 def delete_application(user, domain, application):
 	aaa.delete_app(user, domain, application)
 	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications/<application>/events')
-@response_status(200)
+@response_status_ok
 @aaa.user
 def application_events(user, domain, application):
 	aaa.scale_app(user, domain, application, request_params())
 	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications/<application>/cartridges')
-@response_status(201)
+@response_status_ok
 @aaa.user
 def post_application_cartridges(user, domain, application):
 	aaa.create_gear(user, domain, application, request_params())
 	return 'OK'
 
 @bottle.delete('/broker/rest/domains/<domain>/applications/<application>/cartridges/<cartridge>')
-@response_status(200)
+@response_status_ok
 @aaa.user
 def delete_application_cartridges(user, domain, application, cartridge):
 	aaa.delete_gear(user, domain, application, cartridge)
