@@ -145,7 +145,7 @@ def post_application(user, domain):
 	# create the app
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 	openshift = provider.OpenShift(user)
-	res = openshift(uri).POST(data=bottle.request.body, headers=bottle.request.headers)
+	res = openshift(uri).POST(data=bottle.request.body, headers=dict(bottle.request.headers))
 	# account the app
 	aaa.create_app(user, domain, request_params())
 	return 'OK'
