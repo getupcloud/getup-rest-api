@@ -143,7 +143,12 @@ def post_application(user, domain):
 	# create git repo
 	name = request_params('name')
 	project = '{name}-{domain}'.format(name=name, domain=domain)
-	gitlab.Gitlab().add_project(project)
+	print 'creating project: name={project}'.format(project=project)
+	gl_res = gitlab.Gitlab().add_project(project)
+	print 'creating project: name={project} (done with {status})'.format(project=project, status=gl_res.status_code)
+	if not gl_res.ok:
+		print 'ERROR:', gl_res.text
+		raise bottle.HTTPError(status=500, body='error creating repository')
 
 	# create the app
 	print 'creating application: name={project}'.format(project=project)
@@ -151,6 +156,9 @@ def post_application(user, domain):
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 	os_res = openshift(uri).POST(verify=False, data=bottle.request.body, headers=dict(bottle.request.headers))
 	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
+	if not os_res.ok:
+		print 'ERROR:', os_res.text
+		return to_bottle_response(os_res)
 
 	print 'sync project repository: name={project}'.format(project=project)
 	cl_res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))

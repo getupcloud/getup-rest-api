@@ -34,10 +34,7 @@ class Gitlab:
 		return getattr(self.api, name)
 
 	def add_project(self, name, **kvargs):
-		print 'creating project: name={name}'.format(name=name)
-		res = self.api.api.v2.projects.POST(verify=False, data=json.dumps({'name': name}), **kvargs)
-		print 'creating project: name={name} (done with {status})'.format(name=name, status=res.status_code)
-		return res
+		return self.api.api.v2.projects.POST(verify=False, data=json.dumps({'name': name}), **kvargs)
 
 	def get_project(self, name=None, **kvargs):
 		if name:
