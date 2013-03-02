@@ -136,10 +136,17 @@ def delete_domain(user, domain):
 	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications')
-@response_status_ok
 @aaa.user
 def post_application(user, domain):
-	res = gitlab.Gitlab().add_project('{name}-{domain}'.format(domain=domain, **request_params()))
+	params = request_params()
+	# create git repo
+	project = '{name}-{domain}'.format(domain=domain, **params)
+	gitlab.Gitlab().add_project(project)
+	# create the app
+	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
+	openshift = provider.OpenShift(user)
+	res = openshift(uri).POST(data=bottle.request.body, headers=bottle.request.headers)
+	# account the app
 	aaa.create_app(user, domain, request_params())
 	return 'OK'
 
