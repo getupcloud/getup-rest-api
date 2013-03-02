@@ -159,7 +159,7 @@ def post_application(user, domain):
 
 	#TODO: fix default gear_profile on broker
 	body.update(gear_profile=app.config.provider.openshift.gear_profile)
-	if body.requests.json:
+	if bottle.request.json:
 		body = json.dumps(body)
 
 	os_res = openshift(uri).POST(verify=False, data=body, headers=dict(bottle.request.headers))
