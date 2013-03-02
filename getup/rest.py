@@ -152,7 +152,11 @@ def post_application(user, domain):
 	res = openshift(uri).POST(verify=False, data=bottle.request.body, headers=dict(bottle.request.headers))
 	print 'creating application: name={project} (done with {status})'.format(project=project, status=res.status_code)
 
+	print 'sync project repository: name={project}'.format(project=project)
+	projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
+
 	# account the app
+	print 'accounting new project: name={project}'.format(project=project)
 	aaa.create_app(user, domain, request_params())
 
 	return to_bottle_response(res)

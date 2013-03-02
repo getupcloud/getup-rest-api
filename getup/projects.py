@@ -105,13 +105,16 @@ def _install_getup_key(user):
 	try:
 		with open(app.config.webgit.pubkey_file) as fp:
 			prov = provider.OpenShift(user)
-			for i, key in enumerate(filter(lambda l: l.split(), fp.readlines())):
-				if key[0].startswith('#'):
+			i = 0
+			for line in fp:
+				keyparts = tuple(line.strip().split())
+				if not keyparts or keyparts[0].startswith('#'):
 					continue
-				type, content, name = key.split()[:2] + [ 'getupcloud%i' % i ]
+				((type, content), name) = (keyparts[:2], 'getupcloud%i' % i)
 				res = prov.add_key(name=name, content=content, type=type)
 				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT ]:
 					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.raw.reason)
+				i += 1
 				print 'installed getup pub-key: %s/%s %s...%s' % (type, name, content[:6], content[-6:])
 	except Exception, ex:
 		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
