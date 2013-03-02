@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import bottle
+import re
 import aaa
 import http
 import json
 import codec
+import bottle
 import gitlab
 import provider
 import projects
@@ -149,21 +150,29 @@ def post_application(user, domain):
 	if 'gear_profile' not in body:
 		body.update(gear_profile=app.config.provider.openshift.default_gear_profile)
 
-	name = body['name']
 	gear_profile = body['gear_profile']
+	is_dev_gear = gear_profile == app.config.provider.devel_gear_profile
+	name = body['name']
+	project = appname = '{name}-{domain}'.format(name=name, domain=domain)
 
-	if gear_profile == app.config.provider.devel_gear_profile:
-		name = 'dev{name}'.format(name=name) # ugly
-		project = '{name}-{domain}'.format(name=name, domain=domain)
-	else:
-		project = '{name}-{domain}'.format(name=name, domain=domain)
-		# create git repo
-		print 'creating project: name={project}'.format(project=project)
+	if is_dev_gear and 'initial_git_url' in body:
+		match = re.match('(?:ssh|http|https)?(?:://)?git@git\.getupcloud\.com/(?P<project>[^.]+)\.git$', body['initial_git_url'], re.IGNORECASE)
+		if not match:
+			raise bottle.HTTPError(status=500, body='invalid git repository: {repo}'.format(repo=body['initial_git_url']))
+		project = match.group('project')
+		body.pop('initial_git_url', None)
+
+	# create git repo
+	try:
 		gl_res = gitlab.Gitlab().add_project(project)
-		print 'creating project: name={project} (done with {status})'.format(project=project, status=gl_res.status_code)
+	except:
+		# dev apps may reuse an existing app, i.e. use
+		# a production repo as its upstream.
+		if not is_dev_gear:
+			raise
+		gl_res = gitlab.Gitlab().get_project(project)
 		if not gl_res.ok:
-			print 'ERROR:', gl_res.text
-			raise bottle.HTTPError(status=500, body='error creating repository')
+			raise bottle.HTTPError(status=gl_res.status_code, body='project unavailable: {project}'.format(project=project))
 
 	# create the app
 	print 'creating application: name={project}'.format(project=project)
@@ -179,18 +188,10 @@ def post_application(user, domain):
 		print 'ERROR:', os_res.text
 		return to_bottle_response(os_res)
 
-	if gear_profile == app.config.provider.devel_gear_profile:
-		print 'sync project repository: name={project}'.format(project=project)
-		cl_res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
-		print 'sync project repository: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
-		if not cl_res.ok:
-			print 'ERROR:', cl_res.body
+	if is_dev_gear:
+		projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 	else:
-		print 'attaching project repository to application: name={project}'.format(project=project)
-		cl_res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
-		print 'attaching project repository to application: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
-		if not cl_res.ok:
-			print 'ERROR:', cl_res.body
+		projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
 
 	# account the app
 	print 'accounting new application: name={project}'.format(project=project)

@@ -34,13 +34,19 @@ class Gitlab:
 		return getattr(self.api, name)
 
 	def add_project(self, name, **kvargs):
-		return self.api.api.v2.projects.POST(verify=False, data=json.dumps({'name': name}), **kvargs)
+		print 'creating project: name={name}'.format(name=name)
+		res = self.api.api.v2.projects.POST(verify=False, data=json.dumps({'name': name}), **kvargs)
+		print 'creating project: name={name} (done with {status})'.format(name=name, status=res.status_code)
+		if not res.ok:
+			print 'ERROR:', res.text
+			raise bottle.HTTPError(status=500, body='error creating repository')
+		return res
 
-	def get_project(self, name=None, **kvargs):
-		if name:
-			return self.api.api.v2.projects(name).GET(verify=False, **kvargs)
-		else:
-			return self.api.api.v2.projects.GET(verify=False)
+	def get_project(self, name, **kvargs):
+		return self.api.api.v2.projects(name).GET(verify=False, **kvargs)
+
+	def get_projects(self, **kvargs):
+		return self.api.api.v2.projects.GET(verify=False)
 
 	def add_key(self, title, key, headers=None, **kvargs):
 		print 'adding ssh-key: title={title} key={key}'.format(title=title, key=key[:32])
