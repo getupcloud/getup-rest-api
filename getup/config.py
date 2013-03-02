@@ -45,16 +45,15 @@ valid_config.webgit.remotes_bin   = '/githome/git/bin/remotes'
 valid_config.webgit.identity_file = '~getup/.ssh/id_rsa'
 valid_config.webgit.pubkey_file   = '~getup/getup-rest-api/.ssh/authorized_keys'
 
-valid_config.provider.openshift.hostname         = 'broker.getupcloud.com'
-valid_config.provider.openshift.ops_hostname     = 'broker.ops.getupcloud.com'
-valid_config.provider.openshift.gear_profile     = 'production'
-valid_config.provider.openshift.dev_gear_profile = 'development'
+valid_config.provider.openshift.hostname             = 'broker.getupcloud.com'
+valid_config.provider.openshift.ops_hostname         = 'broker.ops.getupcloud.com'
+valid_config.provider.openshift.default_gear_profile = 'production'
+valid_config.provider.openshift.devel_gear_profile   = 'development'
 
 valid_config.dns.server = 'dnsmaster.getup.io'
 valid_config.dns.port   = 53
 valid_config.dns.zone   = 'getup.io'
 valid_config.dns.key    = ''
-
 
 def validate(node, valid):
 	for k, v in node.iteritems():

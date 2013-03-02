@@ -120,6 +120,9 @@ def _install_getup_key(user):
 	except Exception, ex:
 		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
 
+#
+# Commands
+#
 def clone_remote(user, project_name, application):
 	_install_getup_key(user)
 	res = _create_remote(user, project_name, application.domain, application.name, 'clone')

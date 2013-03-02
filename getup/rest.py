@@ -61,11 +61,11 @@ def post_create(user, domain, application, project, cartridge, scale, dev_gear):
 		return response(user, status=http.HTTP_CONFLICT, body=checklist)
 
 	p_app = projects.Application(domain=domain, name=application, cartridge=cartridge, scale=scale, \
-		gear_profile=app.config.provider.openshift.gear_profile)
+		gear_profile=app.config.provider.openshift.default_gear_profile)
 
 	if dev_gear:
 		d_app = projects.Application(domain=domain, name=dev_application, cartridge=cartridge, scale=False, \
-			gear_profile=app.config.provider.openshift.dev_gear_profile)
+			gear_profile=app.config.provider.openshift.devel_gear_profile)
 	else:
 		d_app = False
 
@@ -141,28 +141,35 @@ def delete_domain(user, domain):
 @bottle.post('/broker/rest/domains/<domain>/applications')
 @aaa.user
 def post_application(user, domain):
-	body = request_params()
 	headers = bottle.HeaderDict(bottle.request.headers)
 	headers.pop('content-length', None)
+	body = request_params()
 
-	# create git repo
+	#TODO: fix default gear_profile on broker
+	if 'gear_profile' not in body:
+		body.update(gear_profile=app.config.provider.openshift.default_gear_profile)
+
 	name = body['name']
-	project = '{name}-{domain}'.format(name=name, domain=domain)
-	print 'creating project: name={project}'.format(project=project)
-	gl_res = gitlab.Gitlab().add_project(project)
-	print 'creating project: name={project} (done with {status})'.format(project=project, status=gl_res.status_code)
-	if not gl_res.ok:
-		print 'ERROR:', gl_res.text
-		raise bottle.HTTPError(status=500, body='error creating repository')
+	gear_profile = body['gear_profile']
+
+	if gear_profile == app.config.provider.devel_gear_profile:
+		name = 'dev{name}'.format(name=name) # ugly
+		project = '{name}-{domain}'.format(name=name, domain=domain)
+	else:
+		project = '{name}-{domain}'.format(name=name, domain=domain)
+		# create git repo
+		print 'creating project: name={project}'.format(project=project)
+		gl_res = gitlab.Gitlab().add_project(project)
+		print 'creating project: name={project} (done with {status})'.format(project=project, status=gl_res.status_code)
+		if not gl_res.ok:
+			print 'ERROR:', gl_res.text
+			raise bottle.HTTPError(status=500, body='error creating repository')
 
 	# create the app
 	print 'creating application: name={project}'.format(project=project)
 	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 
-	#TODO: fix default gear_profile on broker
-	if 'gear_profile' not in body:
-		body.update(gear_profile=app.config.provider.openshift.gear_profile)
 	if bottle.request.json:
 		body = json.dumps(body)
 
@@ -172,14 +179,21 @@ def post_application(user, domain):
 		print 'ERROR:', os_res.text
 		return to_bottle_response(os_res)
 
-	print 'sync project repository: name={project}'.format(project=project)
-	cl_res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
-	print 'sync project repository: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
-	if not cl_res.ok:
-		print 'ERROR:', cl_res.body
+	if gear_profile == app.config.provider.devel_gear_profile:
+		print 'sync project repository: name={project}'.format(project=project)
+		cl_res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
+		print 'sync project repository: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
+		if not cl_res.ok:
+			print 'ERROR:', cl_res.body
+	else:
+		print 'attaching project repository to application: name={project}'.format(project=project)
+		cl_res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
+		print 'attaching project repository to application: name={project} (done with {status})'.format(project=project, status=cl_res.status_code)
+		if not cl_res.ok:
+			print 'ERROR:', cl_res.body
 
 	# account the app
-	print 'accounting new project: name={project}'.format(project=project)
+	print 'accounting new application: name={project}'.format(project=project)
 	aaa.create_app(user, domain, request_params())
 
 	return to_bottle_response(os_res)
