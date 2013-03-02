@@ -4,6 +4,7 @@
 import bottle
 import aaa
 import http
+import json
 import codec
 import gitlab
 import provider
@@ -154,7 +155,13 @@ def post_application(user, domain):
 	print 'creating application: name={project}'.format(project=project)
 	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
-	os_res = openshift(uri).POST(verify=False, data=bottle.request.body, headers=dict(bottle.request.headers))
+
+	#TODO: fix default gear_profile on broker
+	body = bottle.request.json if bottle.request.json else dict(bottle.request.params)
+	if 'gear_profile' not in body:
+		body['gear_profile'] = app.config.provider.openshift.gear_profile
+
+	os_res = openshift(uri).POST(verify=False, data=json.dumps(body), headers=dict(bottle.request.headers))
 	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
 	if not os_res.ok:
 		print 'ERROR:', os_res.text
