@@ -167,11 +167,11 @@ def post_application(user, domain):
 		body.pop('initial_git_url', None)
 
 	print 'starting with'
-	print ' name:      {name}'.format(locals())
-	print ' domain:    {domain}'.format(locals())
-	print ' project:   {project}'.format(locals())
-	print ' gear:      {gear_profile}'.format(locals())
-	print ' body type: {tp}'.format(tp=type(body))
+	print ' name:      {name}'.format(name=name)
+	print ' domain:    {domain}'.format(domain=domain)
+	print ' project:   {project}'.format(project=project)
+	print ' gear:      {body[gear_profile]}'.format(body=body)
+	print ' body type: {body_type}'.format(body_type=type(body))
 
 	# create git repo
 	if not is_dev_gear:
