@@ -192,7 +192,7 @@ def post_application(user, domain):
 		return to_bottle_response(os_res)
 
 	if is_dev_gear:
-		res = projects.add_remote(user, project, projects.Application(domain, project, None, None, None))
+		res = projects.add_remote(user, project, projects.Application(domain, project.split('-')[:1], None, None, None))
 	else:
 		res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 
