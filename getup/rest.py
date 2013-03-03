@@ -152,7 +152,7 @@ def post_application(user, domain):
 
 	is_dev_gear = body['gear_profile'] == app.config.provider.openshift.devel_gear_profile
 	name = body['name']
-	project = '{name}-{domain}'.format(name=name, domain=domain)
+	app_name = '{name}-{domain}'.format(name=name, domain=domain)
 
 	# For dev gears, the project already exists.
 	# We simply add the new app as a remote to the project.
@@ -165,6 +165,8 @@ def post_application(user, domain):
 			raise bottle.HTTPError(status=500, body='invalid git repository: {repo}'.format(repo=body['initial_git_url']))
 		project = match.group('project')
 		body.pop('initial_git_url', None)
+	else:
+		project = '{name}-{domain}'.format(name=name, domain=domain)
 
 	print 'Creatin application:'
 	print ' - user:      {user.email}'.format(user=user)
@@ -178,7 +180,7 @@ def post_application(user, domain):
 		gitlab.Gitlab().add_project(project)
 
 	# create the app
-	print 'creating application: name={project}'.format(project=project)
+	print 'creating application: name={app_name}'.format(app_name=app_name)
 	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 
@@ -186,7 +188,7 @@ def post_application(user, domain):
 		body = json.dumps(body)
 
 	os_res = openshift(uri).POST(verify=False, data=body, headers=headers)
-	print 'creating application: name={project} (done with {status})'.format(project=project, status=os_res.status_code)
+	print 'creating application: name={app_name} (done with {status})'.format(app_name=app_name, status=os_res.status_code)
 	if not os_res.ok:
 		print 'ERROR:', os_res.text
 		return to_bottle_response(os_res)
