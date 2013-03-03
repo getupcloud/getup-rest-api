@@ -128,7 +128,7 @@ def clone_remote(user, project_name, application):
 	mesg = 'setup application project repository: app={app.name}-{app.domain} project={project}'.format(app=application, project=project_name)
 	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'clone')
-	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.status)
+	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.get('status'))
 	return response(user, status=res['status'], body=res)
 
 def add_remote(user, project_name, application):
@@ -136,8 +136,8 @@ def add_remote(user, project_name, application):
 	mesg = 'attaching repository into application: app={app.name}-{app.domain} project={project}'.format(app=application, project=project_name)
 	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'add')
-	print '{mesg} (end with {status})'.format(mesg=mesg, status=res['status'])
-	return response(user, status=res['status'], body=res)
+	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.get('status'))
+	return response(user, status=res.get('status'), body=res)
 
 def del_remote(user, project, remote):
 	if not all([user, project, remote]):
