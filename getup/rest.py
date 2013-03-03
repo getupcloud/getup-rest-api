@@ -150,8 +150,7 @@ def post_application(user, domain):
 	if 'gear_profile' not in body:
 		body.update(gear_profile=app.config.provider.openshift.default_gear_profile)
 
-	gear_profile = body['gear_profile']
-	is_dev_gear = gear_profile == app.config.provider.devel_gear_profile
+	is_dev_gear = body['gear_profile'] == app.config.provider.devel_gear_profile
 	name = body['name']
 	project = '{name}-{domain}'.format(name=name, domain=domain)
 
@@ -166,6 +165,13 @@ def post_application(user, domain):
 			raise bottle.HTTPError(status=500, body='invalid git repository: {repo}'.format(repo=body['initial_git_url']))
 		project = match.group('project')
 		body.pop('initial_git_url', None)
+
+	print 'starting with'
+	print ' name:      {name}'.format(locals())
+	print ' domain:    {domain}'.format(locals())
+	print ' project:   {project}'.format(locals())
+	print ' gear:      {gear_profile}'.format(locals())
+	print ' body type: {tp}'.format(tp=type(body))
 
 	# create git repo
 	if not is_dev_gear:
