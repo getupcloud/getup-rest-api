@@ -166,12 +166,12 @@ def post_application(user, domain):
 		project = match.group('project')
 		body.pop('initial_git_url', None)
 
-	print 'starting with'
-	print ' name:      {name}'.format(name=name)
-	print ' domain:    {domain}'.format(domain=domain)
-	print ' project:   {project}'.format(project=project)
-	print ' gear:      {body[gear_profile]}'.format(body=body)
-	print ' body type: {body_type}'.format(body_type=type(body))
+	print 'Creatin application:'
+	print ' - user:      {user.email}'.format(user=user)
+	print ' - name:      {name}'.format(name=name)
+	print ' - domain:    {domain}'.format(domain=domain)
+	print ' - project:   {project}'.format(project=project)
+	print ' - gear:      {body[gear_profile]}'.format(body=body)
 
 	# create git repo
 	if not is_dev_gear:
