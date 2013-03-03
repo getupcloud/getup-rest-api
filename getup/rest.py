@@ -163,16 +163,8 @@ def post_application(user, domain):
 		body.pop('initial_git_url', None)
 
 	# create git repo
-	try:
-		gl_res = gitlab.Gitlab().add_project(project)
-	except:
-		# dev apps may reuse an existing app, i.e. use
-		# a production repo as its upstream.
-		if not is_dev_gear:
-			raise
-		gl_res = gitlab.Gitlab().get_project(project)
-		if not gl_res.ok:
-			raise bottle.HTTPError(status=gl_res.status_code, body='project unavailable: {project}'.format(project=project))
+	if not is_dev_gear:
+		gitlab.Gitlab().add_project(project)
 
 	# create the app
 	print 'creating application: name={project}'.format(project=project)
