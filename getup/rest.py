@@ -153,10 +153,15 @@ def post_application(user, domain):
 	gear_profile = body['gear_profile']
 	is_dev_gear = gear_profile == app.config.provider.devel_gear_profile
 	name = body['name']
-	project = appname = '{name}-{domain}'.format(name=name, domain=domain)
+	project = '{name}-{domain}'.format(name=name, domain=domain)
 
+	# For dev gears, the project already exists.
+	# We simply add the new app as a remote to the project.
+	# The project name is extracted from :initial_git_url, given
+	# as a parameter to this request.
+	# The git url MUST be inside our domain (ex: git@git.getupcloud.com/<project>.git)
 	if is_dev_gear and 'initial_git_url' in body:
-		match = re.match('(?:ssh|http|https)?(?:://)?git@git\.getupcloud\.com/(?P<project>[^.]+)\.git$', body['initial_git_url'], re.IGNORECASE)
+		match = re.match('(?:[a-z]+://)?git@git\.getupcloud\.com/(?P<project>[^.]+)\.git$', body['initial_git_url'], re.IGNORECASE)
 		if not match:
 			raise bottle.HTTPError(status=500, body='invalid git repository: {repo}'.format(repo=body['initial_git_url']))
 		project = match.group('project')
@@ -181,7 +186,7 @@ def post_application(user, domain):
 		return to_bottle_response(os_res)
 
 	if is_dev_gear:
-		res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
+		res = projects.add_remote(user, project, projects.Application(domain, project, None, None, None))
 	else:
 		res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 
