@@ -189,9 +189,12 @@ def post_application(user, domain):
 		return to_bottle_response(os_res)
 
 	if is_dev_gear:
-		projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
+		res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 	else:
-		projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
+		res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
+
+	if not res.ok:
+		print 'ERROR:', res.body
 
 	# account the app
 	print 'accounting new application: name={project}'.format(project=project)

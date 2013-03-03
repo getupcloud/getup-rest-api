@@ -129,8 +129,6 @@ def clone_remote(user, project_name, application):
 	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'clone')
 	print '{mesg} (end with {status})'.format(mesg=mesg, status=res.status)
-	if not res.ok:
-		print 'ERROR:', res.body
 	return response(user, status=res['status'], body=res)
 
 def add_remote(user, project_name, application):
@@ -139,8 +137,6 @@ def add_remote(user, project_name, application):
 	print mesg
 	res = _create_remote(user, project_name, application.domain, application.name, 'add')
 	print '{mesg} (end with {status})'.format(mesg=mesg, status=res['status'])
-	if not res.ok:
-		print 'ERROR:', res.body
 	return response(user, status=res['status'], body=res)
 
 def del_remote(user, project, remote):
