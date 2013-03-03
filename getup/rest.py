@@ -150,7 +150,7 @@ def post_application(user, domain):
 	if 'gear_profile' not in body:
 		body.update(gear_profile=app.config.provider.openshift.default_gear_profile)
 
-	is_dev_gear = body['gear_profile'] == app.config.provider.devel_gear_profile
+	is_dev_gear = body['gear_profile'] == app.config.provider.openshift.devel_gear_profile
 	name = body['name']
 	project = '{name}-{domain}'.format(name=name, domain=domain)
 
