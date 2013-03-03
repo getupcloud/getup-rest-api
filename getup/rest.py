@@ -189,9 +189,9 @@ def post_application(user, domain):
 		return to_bottle_response(os_res)
 
 	if is_dev_gear:
-		res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
-	else:
 		res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
+	else:
+		res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 
 	if not res.ok:
 		print 'ERROR:', res.body
