@@ -19,14 +19,17 @@ Project = collections.namedtuple('Project', 'name application dev_application')
 
 app = bottle.app()
 
-def _cmd_list(project):
-	return '%s list %s' % (app.config.webgit.remotes_bin, project)
+def _cmd_list(project, cmd='list'):
+	return '{bin} {cmd} {project}'.format(
+		bin=app.config.webgit.remotes_bin, cmd=cmd, project=project)
 
-def _cmd_create(cmd, project, name, url):
-	return '%s %s %s %s "%s"' % (app.config.webgit.remotes_bin, cmd, project, name, url)
+def _cmd_create(project, name, url, cmd):
+	return '{bin} {cmd} {project} {name} "{url}"'.format(
+		bin=app.config.webgit.remotes_bin, cmd=cmd, project=project, name=name, url=url)
 
-def _cmd_del(project, name):
-	return '%s del %s %s' % (app.config.webgit.remotes_bin, project, name)
+def _cmd_del(project, name, cmd='del'):
+	return '{bin} {cmd} {project} {name}'.format(
+		bin=app.config.webgit.remotes_bin, cmd=cmd, project=project, name=name)
 
 def run_command(user, cmd):
 	try:
@@ -40,7 +43,7 @@ def run_command(user, cmd):
 
 		return output
 	except ValueError, ex:
-		print 'Failure parsing command output: %s' % ex
+		print 'Failure parsing command output: {ex}'.format(ex=ex)
 		print '--- stdout'
 		print cmd_result.stdout
 		print '--- stderr'
@@ -98,9 +101,9 @@ def _create_remote(user, project, domain, application, command='add'):
 	if not res.ok:
 		raise response(user, res)
 
-	remote = '%(name)s-%(domain_id)s' % app_data
-	git_url = '{ssh_url}/~/git/{name}.git/'.format(**app_data)
-	return run_command(user, _cmd_create(command, project, remote, git_url))
+	remote = '{app[name]}-{app[domain_id]}'.format(app=app_data)
+	git_url = '{app[ssh_url]}/~/git/{app[name]}.git/'.format(app=app_data)
+	return run_command(user, _cmd_create(project, remote, git_url, command))
 
 def _install_getup_key(user):
 	try:
@@ -111,14 +114,17 @@ def _install_getup_key(user):
 				keyparts = tuple(line.strip().split())
 				if not keyparts or keyparts[0].startswith('#'):
 					continue
-				((type, content), name) = (keyparts[:2], 'getupcloud%i' % i)
-				res = prov.add_key(name=name, content=content, type=type)
+				((key_type, content), name) = (keyparts[:2], 'getupcloud%i' % i)
+				res = prov.add_key(name=name, content=content, type=key_type)
 				if res.status_code not in [ http.HTTP_CREATED, http.HTTP_CONFLICT ]:
-					print 'WARNING: error posting getup pub-key (%s/%s) to user %s: %s %s' % (type, name, user['email'], res.status_code, res.raw.reason)
+					print 'WARNING: error posting getup pub-key {name} ({key_type}) to user {user}: {res.status_code} {res.raw.reason}'.format(
+						name=name, key_type=key_type, user=user['email'], res=res)
 				i += 1
-				print 'installed getup pub-key: %s/%s %s...%s' % (type, name, content[:6], content[-6:])
+				print 'installed getup pub-key {name} ({key_type}) {key_prefix}...{key_suffix}'.format(
+					name=name, key_type=key_type, key_prefix=content[:8], key_suffix=content[-8:])
 	except Exception, ex:
-		print 'WARNING: unable to install getup pub-key to user %s: %s: %s' % (user['email'], ex.__class__, ex)
+		print 'WARNING: unable to install getup pub-key to user {user}: {ex.__class__}: {ex}'.format(
+			user=user['email'], ex=ex)
 
 #
 # Commands
@@ -174,7 +180,7 @@ def _create_gitlab_project(user, proj):
 def _create_application(user, app):
 	res = provider.OpenShift(user).add_app(**app._asdict())
 	if res.ok:
-		print 'Application created: %s-%s' % (app.name, app.domain)
+		print 'Application created: {app.name}-{app.domain}'.format(app=app)
 		return res
 
 	raise response(user, res=res)
@@ -182,7 +188,8 @@ def _create_application(user, app):
 def _clone_app_into_repo(user, project_name, application):
 	res = clone_remote(user, project_name, application)
 	if res.ok:
-		print 'Project cloned from application: %s-%s -> %s' % (application.name, application.domain, project_name)
+		print 'Project cloned from application: {app.name}-{app.domain} -> {project}'.format(
+			app=application, project=project_name)
 		return res
 
 	raise res
@@ -190,7 +197,8 @@ def _clone_app_into_repo(user, project_name, application):
 def _add_remote(user, project_name, application):
 	res = add_remote(user, project_name, application)
 	if res.ok:
-		print 'Remote added to project: %s -> %s-%s' % (project_name, application.name, application.domain)
+		print 'Remote added to project: {project} -> {app.name}-{app.domain}'.format(
+			app=application, project=project_name)
 		return res
 
 	raise res
@@ -200,12 +208,12 @@ def create_project(user, project):
 
 	report = []
 	def add_report(action, description, **kva):
-		print '%s: %s' % (action, description)
 		report.append(dict(action=action, description=description, **kva))
 
 	def set_report_status(res):
 		r = report[-1]
-		print '%s: %s\n---\n%s\n---' % (r['action'], res.status_code, res.json)
+		print '{action}: {res.status_code}\n---\n{res.json}\n---'.format(
+			action=r['action'], res=res)
 		report[-1].update(status=res.status_code, content=res.json)
 
 	try:
@@ -235,8 +243,7 @@ def create_project(user, project):
 			res = _create_application(user, project.dev_application)
 			set_report_status(res)
 
-			#add_report('dev_application_dns', 'Register dev_application DNS wildcard (*.%s)' % project.dev_application.name)
-			_add_wildcard_cname('%s-%s' % (project.dev_application.name, project.dev_application.domain))
+			dns_register_wildcard_cname('{app.name}-{app.domain}'.format(app=project.dev_application))
 			#set_report_status(res)
 
 			# add remote to dev repoitory
@@ -246,18 +253,18 @@ def create_project(user, project):
 
 	except HTTPResponse, ex:
 		set_report_status(ex.res)
-		add_report('finish', 'Failure creating component (%s)' % report[-1]['action'], status=str(),
+		add_report('finish', 'Failure creating component ({action})'.format(action=report[-1]['action']), status=str(),
 			start_time=start_time, end_time=datetime.utcnow().ctime())
 		return response(user, status=ex.status_code, body=report)
 
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
 
-def _add_wildcard_cname(name):
+def dns_register_wildcard_cname(name):
 	'''Creates a DNS CNAME entry '*.{name}' to '{name}'
 	'''
 
-	assert name, 'Invalid parameters to DNS UPDATE: name=%s' % name
+	assert name, 'Invalid parameters to DNS UPDATE: name={name}'.format(name=name)
 	zone = app.config.dns.zone
 	key  = app.config.dns.key
 
@@ -268,7 +275,7 @@ def _add_wildcard_cname(name):
 	af = server[0]
 	addr, port = server[-1][:2]
 
-	cname = '*.%s' % name
+	cname = '*.{name}'.format(name=name)
 	print 'Registering DNS CNAME: {cname} -> {name}.{zone}'.format(cname=cname, name=name, zone=zone)
 	keyring = dns.tsigkeyring.from_text({ zone: key })
 	update = dns.update.Update(zone, keyring=keyring, keyname=zone, keyalgorithm=dns.tsig.HMAC_MD5)

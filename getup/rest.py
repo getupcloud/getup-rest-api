@@ -197,6 +197,7 @@ def post_application(user, domain):
 		if is_dev_gear:
 			res = projects.add_remote(user, project, projects.Application(domain, name, None, None, None))
 			os_res.json['data']['git_url'] = 'ssh://git@git.getupcloud.com/{project}.git'.format(project=project)
+			projects.dns_register_wildcard_cname(app_name)
 		else:
 			res = projects.clone_remote(user, project, projects.Application(domain, name, None, None, None))
 
