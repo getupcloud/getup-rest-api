@@ -215,6 +215,7 @@ def post_application(user, domain):
 @aaa.user
 def delete_application(user, domain, application):
 	aaa.delete_app(user, domain, application)
+	projects.dns_unregister_cname('{name}-{domain}'.format(name=application, domain=domain))
 	return 'OK'
 
 @bottle.post('/broker/rest/domains/<domain>/applications/<application>/events')

@@ -260,11 +260,7 @@ def create_project(user, project):
 	add_report('finish', 'All operations sucessfully finished', start_time=start_time, end_time=datetime.utcnow().ctime())
 	return response(user, status=http.HTTP_CREATED, body=report)
 
-def dns_register_wildcard_cname(name):
-	'''Creates a DNS CNAME entry '*.{name}' to '{name}'
-	'''
-
-	assert name, 'Invalid parameters to DNS UPDATE: name={name}'.format(name=name)
+def _dns_init():
 	zone = app.config.dns.zone
 	key  = app.config.dns.key
 
@@ -275,10 +271,32 @@ def dns_register_wildcard_cname(name):
 	af = server[0]
 	addr, port = server[-1][:2]
 
+	return {
+		'af': af,
+		'addr': addr,
+		'port': port,
+		'zone': zone,
+		'keyring': dns.tsigkeyring.from_text({ zone: key }),
+		'keyname': zone,
+		'keyalgorithm': dns.tsig.HMAC_MD5,
+	}
+
+def dns_register_wildcard_cname(name):
+	'''Creates a DNS wildcard CNAME entry '*.{name}' pointing to '{name}'
+	'''
+
+	assert name, 'Invalid parameters to DNS UPDATE: name={name}'.format(name=name)
+
+	dns_params = _dns_init()
 	cname = '*.{name}'.format(name=name)
-	print 'Registering DNS CNAME: {cname} -> {name}.{zone}'.format(cname=cname, name=name, zone=zone)
-	keyring = dns.tsigkeyring.from_text({ zone: key })
-	update = dns.update.Update(zone, keyring=keyring, keyname=zone, keyalgorithm=dns.tsig.HMAC_MD5)
+	af, addr, port = [ dns_params.pop(attr) for attr in ('af', 'addr', 'port') ]
+
+	print 'Registering DNS wildcard CNAME: {cname} -> {name}.{zone}'.format(cname=cname, name=name, zone=dns_params['zone'])
+
+	update = dns.update.Update(**dns_params)
+	#update = dns.update.Update(zone, keyring=keyring, keyname=zone, keyalgorithm=dns.tsig.HMAC_MD5)
 	update.add(cname, 60, 'cname', name)
-	response = dns.query.udp(update, where=addr, port=port, timeout=30, af=af)
-	print 'DNS response\n---\n', response.to_text(), '\n---'
+	response = dns.query.udp(update, where=addr, port=port, timeout=60, af=af)
+
+def dns_unregister_cname(name):
+	pass
