@@ -184,8 +184,7 @@ def post_application(user, domain):
 	openshift = provider.OpenShift(user, hostname=app.config.provider.openshift.ops_hostname)
 	uri = '?'.join(filter(None, [ bottle.request.fullpath, bottle.request.query_string ]))
 
-	if bottle.request.json:
-		body = json.dumps(body)
+	body = json.dumps(body) if bottle.request.json else dict(body)
 
 	os_res = openshift(uri).POST(verify=False, data=body, headers=headers)
 	print 'creating application: name={app_name} (done with {status})'.format(app_name=app_name, status=os_res.status_code)
